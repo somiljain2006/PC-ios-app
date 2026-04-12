@@ -1,0 +1,12 @@
+disabled_rules:
+  - trailing_whitespace
+
+opt_in_rules:
+  - empty_count
+  - force_unwrapping
+
+line_length: 150
+
+identifier_name:
+  min_length: 2
+  max_length: 40
