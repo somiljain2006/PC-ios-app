@@ -8,7 +8,67 @@
 import SwiftUI
 
 struct HomeView: View {
+    @State private var selectedTab: String = "home"
     var body: some View {
+        ZStack {
+            // Background
+            Color.background
+                .ignoresSafeArea()
+
+            // Content switch
+            Group {
+                switch selectedTab {
+                case "about":
+                    AboutView()
+                default:
+                    homeContent
+                }
+            }
+
+            // Navbar ALWAYS visible
+            VStack(spacing: 0) {
+                Spacer()
+
+                Rectangle()
+                    .fill(Color.outlineVariant.opacity(0.3))
+                    .frame(height: 1)
+
+                HStack {
+                    Button {
+                        selectedTab = "home"
+                    } label: {
+                        NavItem(icon: "house.fill", title: "Home", active: selectedTab == "home")
+                    }
+
+                    Button {
+                        selectedTab = "editorial"
+                    } label: {
+                        NavItem(icon: "doc.text", title: "Editorial", active: selectedTab == "editorial")
+                    }
+
+                    Button {
+                        selectedTab = "events"
+                    } label: {
+                        NavItem(icon: "calendar", title: "Events", active: selectedTab == "events")
+                    }
+
+                    Button {
+                        selectedTab = "about"
+                    } label: {
+                        NavItem(icon: "person.3", title: "About", active: selectedTab == "about")
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal)
+                .padding(.top, 16)
+                .padding(.bottom, 10)
+                .background(Color.surface)
+            }
+            .ignoresSafeArea(edges: .bottom)
+        }
+    }
+
+    private var homeContent: some View {
         ZStack {
             Color.background
                 .ignoresSafeArea()
@@ -131,29 +191,6 @@ struct HomeView: View {
                 .padding(.top, 20)
                 .padding()
             }
-
-            VStack(spacing: 0) {
-                Spacer()
-
-                Rectangle()
-                    .fill(Color.outlineVariant.opacity(0.3))
-                    .frame(height: 1)
-
-                HStack {
-                    NavItem(icon: "house.fill", title: "Home", active: true)
-                    NavItem(icon: "doc.text", title: "Editorial")
-                    NavItem(icon: "calendar", title: "Events")
-                    NavItem(icon: "person.3", title: "About")
-                }
-                .padding(.horizontal)
-                .padding(.top, 16)
-                .padding(.bottom, 10)
-                .safeAreaInset(edge: .bottom) {
-                    Color.clear.frame(height: 0)
-                }
-                .background(Color.surface)
-            }
-            .ignoresSafeArea(edges: .bottom)
         }
     }
 }

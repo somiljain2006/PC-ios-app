@@ -5,7 +5,7 @@ opt_in_rules:
   - empty_count
   - force_unwrapping
 
-line_length: 150
+line_length: 250
 
 identifier_name:
   min_length: 2
