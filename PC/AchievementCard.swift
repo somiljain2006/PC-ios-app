@@ -28,7 +28,7 @@ struct AchievementCard: View {
                     .multilineTextAlignment(.center)
 
                 Text(subtitle)
-                    .font(.system(size: 13, weight: .regular))
+                    .font(.system(size: 12, weight: .regular))
                     .foregroundColor(Color.onSurfaceVariant)
                     .italic()
                     .multilineTextAlignment(.center)

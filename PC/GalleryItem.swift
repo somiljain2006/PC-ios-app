@@ -34,7 +34,7 @@ struct GalleryItem: View {
             .cornerRadius(12)
 
             Text(caption)
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .font(.system(size: 14, weight: .bold, design: .monospaced))
                 .foregroundColor(Color.onSurfaceVariant)
                 .tracking(1)
                 .multilineTextAlignment(.center)

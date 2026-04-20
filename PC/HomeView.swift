@@ -11,11 +11,9 @@ struct HomeView: View {
     @State private var selectedTab: String = "home"
     var body: some View {
         ZStack {
-            // Background
             Color.background
                 .ignoresSafeArea()
 
-            // Content switch
             Group {
                 switch selectedTab {
                 case "about":
@@ -25,7 +23,6 @@ struct HomeView: View {
                 }
             }
 
-            // Navbar ALWAYS visible
             VStack(spacing: 0) {
                 Spacer()
 
@@ -186,11 +183,66 @@ struct HomeView: View {
                     }
                     .cornerRadius(12)
 
-                    Spacer(minLength: 80)
+                    StatsBoardCard()
+
+                    Spacer(minLength: 50)
+
+                    VStack(spacing: 20) {
+                        HStack(spacing: 20) {
+                            SocialButton(imageName: "Linkedin", url: "https://www.linkedin.com/company/programming-club-akgec/mycompany/")
+                            SocialButton(imageName: "Insta", url: "https://www.instagram.com/programmingclub.akgec/")
+                            SocialButton(imageName: "Web", url: "https://www.programmingclub.live/")
+                        }
+
+                        Text("Connect with us on social media")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(Color.onSurfaceVariant.opacity(0.7))
+                            .tracking(1)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
                 }
                 .padding(.top, 20)
                 .padding()
             }
+        }
+    }
+}
+
+struct StatsBoardCard: View {
+    var body: some View {
+        VStack(spacing: 36) {
+            HStack(spacing: 0) {
+                StatItemView(number: "500+", label: "ACTIVE MEMBERS")
+                    .frame(maxWidth: .infinity)
+
+                StatItemView(number: "120+", label: "WEEKLY CONTESTS")
+                    .frame(maxWidth: .infinity)
+            }
+
+            StatItemView(number: "10+", label: "EDITORIAL WRITTEN")
+        }
+        .padding(.vertical, 40)
+        .frame(maxWidth: .infinity)
+        .background(Color.surfaceContainerHigh)
+        .cornerRadius(16)
+    }
+}
+
+struct StatItemView: View {
+    var number: String
+    var label: String
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text(number)
+                .font(.system(size: 38, weight: .bold))
+                .foregroundColor(Color.onSurfaceVariant)
+
+            Text(label)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(Color.onSurfaceVariant)
+                .tracking(1.5)
         }
     }
 }
@@ -263,6 +315,44 @@ struct NavItem: View {
     }
 }
 
+struct SocialButton: View {
+    var imageName: String?
+    var systemName: String?
+    var url: String
+
+    var body: some View {
+        if let validURL = URL(string: url) {
+            Link(destination: validURL) {
+                buttonLabel
+            }
+        }
+    }
+
+    private var buttonLabel: some View {
+        ZStack {
+            Circle()
+                .fill(Color.surfaceContainerHigh)
+                .frame(width: 50, height: 50)
+                .overlay(
+                    Circle()
+                        .stroke(Color.outlineVariant.opacity(0.2), lineWidth: 1)
+                )
+
+            if let systemName {
+                Image(systemName: systemName)
+                    .font(.system(size: 22))
+                    .foregroundColor(Color.primary)
+            } else if let imageName {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: imageName == "Web" ? 32 : 26,
+                           height: imageName == "Web" ? 32 : 26)
+            }
+        }
+    }
+}
+
 #Preview {
-    ContentView()
+    HomeView()
 }
