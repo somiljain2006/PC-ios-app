@@ -65,53 +65,6 @@ struct AboutView: View {
                         }
                     }
 
-                    VStack(alignment: .leading, spacing: 16) {
-                        VStack(spacing: 10) {
-                            Text("Our ")
-                                .font(.system(size: 34, weight: .bold))
-                                .foregroundColor(Color.onSurface)
-                                +
-                                Text("Team")
-                                .font(.system(size: 34, weight: .bold))
-                                .foregroundColor(Color.primaryContainer)
-
-                            Rectangle()
-                                .fill(Color.primaryContainer)
-                                .frame(width: 96, height: 4)
-                                .cornerRadius(2)
-
-                            Text("""
-                            A strong and growing community of 56 passionate coders across different years.
-                            """)
-                            .font(.system(size: 14))
-                            .foregroundColor(Color.onSurfaceVariant)
-                            .lineSpacing(4)
-                            .padding(.top, 4)
-                            .frame(maxWidth: .infinity)
-                            .multilineTextAlignment(.center)
-                        }
-
-                        VStack(spacing: 16) {
-                            MemberGroupCard(
-                                year: "4th Year",
-                                count: 22,
-                                imageName: "year4_photo"
-                            )
-
-                            MemberGroupCard(
-                                year: "3rd Year",
-                                count: 21,
-                                imageName: "year3_photo"
-                            )
-
-                            MemberGroupCard(
-                                year: "2nd Year",
-                                count: 13,
-                                imageName: "year2_photo"
-                            )
-                        }
-                    }
-
                     VStack(spacing: 16) {
                         VStack(spacing: 10) {
                             Text("Photo ")

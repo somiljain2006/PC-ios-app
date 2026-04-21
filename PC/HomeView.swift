@@ -18,6 +18,8 @@ struct HomeView: View {
                 switch selectedTab {
                 case "about":
                     AboutView()
+                case "events":
+                    EventsView()
                 default:
                     homeContent
                 }
@@ -58,7 +60,7 @@ struct HomeView: View {
                 .buttonStyle(.plain)
                 .padding(.horizontal)
                 .padding(.top, 16)
-                .padding(.bottom, 10)
+                .padding(.bottom, 34)
                 .background(Color.surface)
             }
             .ignoresSafeArea(edges: .bottom)
@@ -204,6 +206,8 @@ struct HomeView: View {
                 }
                 .padding(.top, 20)
                 .padding()
+
+                Spacer()
             }
         }
     }
