@@ -20,6 +20,8 @@ struct HomeView: View {
                     AboutView()
                 case "events":
                     EventsView()
+                case "editorial":
+                    EditorialView()
                 default:
                     homeContent
                 }

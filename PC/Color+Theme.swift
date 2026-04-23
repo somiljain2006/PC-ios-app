@@ -10,6 +10,9 @@ import SwiftUI
 extension Color {
     static let background = Color(hex: "#18101f")
     static let surface = Color(hex: "#18101f")
+
+    static let surfaceContainerLowest = Color(hex: "#130b1a")
+    static let surfaceContainerHighest = Color(hex: "#3b3142")
     static let surfaceContainer = Color(hex: "#251c2c")
     static let surfaceContainerLow = Color(hex: "#211828")
     static let surfaceContainerHigh = Color(hex: "#302637")
@@ -24,6 +27,8 @@ extension Color {
     static let secondary = Color(hex: "#e4b5ff")
     static let secondaryContainer = Color(hex: "#8e03d5")
 
+    static let outline = Color(hex: "#ab8986")
+    static let tertiaryContainer = Color(hex: "#d07d28")
     static let outlineVariant = Color(hex: "#5b403e")
 }
 
