@@ -5,6 +5,7 @@
 //  Created by somil jain on 19/04/26.
 //
 
+import Foundation
 import SwiftUI
 
 struct ActiveImage: Identifiable {
@@ -125,4 +126,107 @@ struct CodeforcesContest: Decodable {
 struct ContestFilter: Hashable {
     let name: String
     let icon: String?
+}
+
+struct PCEditorialDetail: Codable, Identifiable, Hashable {
+    let id: Int
+    let slug: String
+    let platform: String
+    let contestName: String
+    let contestLink: String
+    let contestDate: String
+    let createdAt: String
+    let questions: [PCEditorialDetailQuestion]
+
+    enum CodingKeys: String, CodingKey {
+        case id, slug, platform
+        case contestName = "contest_name"
+        case contestLink = "contest_link"
+        case contestDate = "contest_date"
+        case createdAt = "created_at"
+        case questions
+    }
+}
+
+struct PCEditorialDetailQuestion: Codable, Identifiable, Hashable {
+    let id: Int
+    let questionName: String
+    let questionLink: String
+    let explanation: String?
+    let code: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case questionName = "question_name"
+        case questionLink = "question_link"
+        case explanation
+        case code
+    }
+}
+
+struct EditorialPost: Identifiable, Hashable {
+    let id: Int
+    let date: String
+    let title: String
+    let platform: String
+    let icon: String
+    let questions: String
+    let readTime: String
+    let level: String
+    let author: String
+}
+
+struct CFRecentActionsResponse: Codable {
+    let status: String
+    let result: [CFAction]
+}
+
+struct CFAction: Codable {
+    let blogEntry: CFBlogEntry
+}
+
+struct CFBlogEntry: Codable {
+    let id: Int
+    let title: String
+    let creationTimeSeconds: TimeInterval
+    let authorHandle: String
+}
+
+struct PCEditorialsResponse: Codable {
+    let count: Int
+    let next: String?
+    let previous: String?
+    let results: [PCEditorial]
+}
+
+struct PCEditorial: Codable, Identifiable, Hashable {
+    let id: Int
+    let slug: String
+    let platform: String
+    let contestName: String
+    let contestLink: String
+    let contestDate: String
+    let createdAt: String
+    let questions: [PCQuestion]
+
+    enum CodingKeys: String, CodingKey {
+        case id, slug, platform
+        case contestName = "contest_name"
+        case contestLink = "contest_link"
+        case contestDate = "contest_date"
+        case createdAt = "created_at"
+        case questions
+    }
+}
+
+struct PCQuestion: Codable, Identifiable, Hashable {
+    let id: Int
+    let questionName: String
+    let questionLink: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case questionName = "question_name"
+        case questionLink = "question_link"
+    }
 }
