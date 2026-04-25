@@ -9,6 +9,9 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var selectedTab: String = "home"
+    @StateObject private var network = NetworkMonitor()
+    @State private var animateTitle = false
+    @State private var glow = false
     var body: some View {
         ZStack {
             Color.background
@@ -70,148 +73,279 @@ struct HomeView: View {
     }
 
     private var homeContent: some View {
-        ZStack {
-            Color.background
-                .ignoresSafeArea()
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 20) {
+                    HStack(spacing: 6) {
+                        OnlineIndicator(isConnected: network.isConnected)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(Color.primary)
-                            .frame(width: 8, height: 8)
-
-                        Text("STATUS: COMPILING EXCELLENCE")
+                        Text(network.isConnected ? "SYSTEM ONLINE" : "OFFLINE")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(Color.primary)
-                            .tracking(2)
-                    }
-                    .padding(8)
-                    .background(Color.primary.opacity(0.1))
-                    .cornerRadius(20)
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Hi There!")
-                            .font(.system(size: 42, weight: .bold))
-                            .foregroundColor(Color.onSurface)
-
-                        Text("We Are")
-                            .font(.system(size: 42, weight: .light))
-                            .italic()
-                            .foregroundColor(Color.onSurfaceVariant)
-
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("Programming")
-                                .font(.system(size: 42, weight: .bold))
-                                .foregroundColor(Color.primary)
-
-                            Text("Club")
-                                .font(.system(size: 42, weight: .bold))
-                                .foregroundColor(Color.primary)
-                        }
-
-                        Text("""
-                        The apex community for algorithm
-                        enthusiasts, software architects, and
-                        competitive problem solvers.
-                        """)
-                        .font(.system(size: 14))
-                        .foregroundColor(Color.onSurfaceVariant)
-                        .padding(.top, 8)
-                        .padding(.bottom, 8)
-
-                        Button(
-                            action: {},
-                            label: {
-                                Text("Join the Community")
-                                    .fontWeight(.bold)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(
-                                        LinearGradient(
-                                            colors: [Color.primary, Color.primaryContainer],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .foregroundColor(Color.onPrimaryContainer)
-                                    .cornerRadius(10)
-                            }
-                        )
-                        .padding(.top, 8)
-                    }
-
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack(alignment: .center, spacing: 12) {
-                            Text("What We Do")
-                                .font(.title2.bold())
-                                .foregroundColor(Color.onSurface)
-
-                            Rectangle()
-                                .fill(Color.outlineVariant.opacity(0.3))
-                                .frame(height: 1)
-                                .frame(maxWidth: .infinity)
-                        }
-
-                        FeatureCard(
-                            icon: "bolt.fill",
-                            title: "Competitive Programming",
-                            desc: "Sharpen your problem-solving skills through contests, practice sessions, and different coding challenges."
-                        )
-
-                        FeatureCard(
-                            icon: "point.3.connected.trianglepath.dotted",
-                            title: "DSA Mastery",
-                            desc: "Deep dives into complex data structures and optimal algorithm design."
-                        )
-                    }
-
-                    ZStack(alignment: .bottomLeading) {
-                        Image("code")
-                            .resizable()
-                            .scaledToFill()
-                            .frame(height: 180)
-                            .clipped()
-                            .opacity(0.4)
-
-                        VStack(alignment: .leading) {
-                            Text("#CODE_EVERYDAY")
-                                .font(.caption)
-                                .foregroundColor(Color.primary)
-
-                            Text("EXECUTE DREAMS.")
-                                .font(.title.bold())
-                                .foregroundColor(Color.onSurface)
-                        }
-                        .padding()
-                    }
-                    .cornerRadius(12)
-
-                    StatsBoardCard()
-
-                    Spacer(minLength: 50)
-
-                    VStack(spacing: 20) {
-                        HStack(spacing: 20) {
-                            SocialButton(imageName: "Linkedin", url: "https://www.linkedin.com/company/programming-club-akgec/mycompany/")
-                            SocialButton(imageName: "Insta", url: "https://www.instagram.com/programmingclub.akgec/")
-                            SocialButton(imageName: "Web", url: "https://www.programmingclub.live/")
-                        }
-
-                        Text("Connect with us on social media")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(Color.onSurfaceVariant.opacity(0.7))
+                            .foregroundColor(network.isConnected ? .primary : .gray)
                             .tracking(1)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                }
-                .padding(.top, 20)
-                .padding()
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        (network.isConnected ? Color.primary : Color.gray)
+                            .opacity(0.12)
+                    )
+                    .cornerRadius(8)
 
-                Spacer()
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Welcome to")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(.onSurfaceVariant)
+                            .opacity(animateTitle ? 1 : 0)
+                            .offset(y: animateTitle ? 0 : 10)
+
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("PROGRAMMING")
+                                .modifier(Shimmer())
+                                .font(.system(size: 38, weight: .black))
+                                .foregroundColor(.primaryContainer)
+                                .scaleEffect(animateTitle ? 1 : 0.9)
+                                .opacity(animateTitle ? 1 : 0)
+                                .offset(y: animateTitle ? 0 : 25)
+                                .shadow(color: glow ? Color.primaryContainer.opacity(0.6) : .clear, radius: 12)
+
+                            Text("CLUB")
+                                .modifier(Shimmer())
+                                .font(.system(size: 38, weight: .black))
+                                .foregroundColor(.primaryContainer)
+                                .scaleEffect(animateTitle ? 1 : 0.9)
+                                .opacity(animateTitle ? 1 : 0)
+                                .offset(y: animateTitle ? 0 : 35)
+                                .shadow(color: glow ? Color.primaryContainer.opacity(0.6) : .clear, radius: 12)
+                        }
+                    }
+                    .onAppear {
+                        withAnimation(.easeOut(duration: 0.6)) { animateTitle = true
+                        }
+                    }
+
+                    Text("""
+                    Your competitive programming workspace: editorials, problem sets, and insights to help you improve faster.
+                    """)
+                    .font(.system(size: 14))
+                    .foregroundColor(.onSurfaceVariant)
+
+                    Button {
+                        if network.isConnected {
+                            handleJoinCommunity()
+                        }
+                    } label: {
+                        HStack {
+                            Text("JOIN THE COMMUNITY")
+                            Image(systemName: "arrow.right")
+                        }
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(network.isConnected ? .black : .onSurfaceVariant)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            network.isConnected
+                                ? Color.white
+                                : Color.surfaceContainerHigh
+                        )
+                        .cornerRadius(12)
+                        .shadow(
+                            color: network.isConnected ? Color.white.opacity(0.15) : .clear,
+                            radius: 12,
+                            y: 4
+                        )
+                    }
+                    .disabled(!network.isConnected)
+                    .padding(.top, 6)
+                }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("CP Arena")
+                        .font(.headline)
+                        .foregroundColor(.onSurface)
+
+                    HStack(spacing: 12) {
+                        QuickCard(image: "cses", imageSize: 60) {
+                            openURL("https://cses.fi/problemset/")
+                        }
+
+                        QuickCard(image: "cp31", imageSize: 80) {
+                            openURL("https://www.tle-eliminators.com/cp-sheet")
+                        }
+
+                        QuickCard(
+                            image: "striver",
+                            title: "Striver's Sheet",
+                            imageSize: 34
+                        ) {
+                            openURL("https://takeuforward.org/dsa/strivers-a2z-sheet-learn-dsa-a-to-z")
+                        }
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    VStack(spacing: 14) {
+                        ModernFeatureCard(
+                            title: "Coding",
+                            desc: "Build strong foundations in algorithms and data structures.",
+                            icon: "chevron.left.slash.chevron.right"
+                        )
+
+                        ModernFeatureCard(
+                            title: "Competitive Programming",
+                            desc: "Compete, improve speed, and master contest strategies.",
+                            icon: "bolt.fill"
+                        )
+
+                        ModernFeatureCard(
+                            title: "Problem Solving",
+                            desc: "Break down complex problems into efficient solutions.",
+                            icon: "brain.head.profile"
+                        )
+                    }
+                }
+
+                Spacer(minLength: 60)
+            }
+            .padding()
+            .padding(.top, 10)
+        }
+    }
+
+    private func handleJoinCommunity() {
+        if let url = URL(string: "https://www.programmingclub.live/") {
+            UIApplication.shared.open(url)
+        }
+    }
+
+    private func openURL(_ string: String) {
+        if let url = URL(string: string) {
+            UIApplication.shared.open(url)
+        }
+    }
+}
+
+struct Shimmer: ViewModifier {
+    @State private var move = false
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                LinearGradient(
+                    colors: [.clear, Color.white.opacity(0.3), .clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .rotationEffect(.degrees(20))
+                .offset(x: move ? 200 : -200)
+            )
+            .mask(content)
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    move = true
+                }
+            }
+    }
+}
+
+struct OnlineIndicator: View {
+    var isConnected: Bool
+    @State private var pulse = false
+
+    var body: some View {
+        ZStack {
+            if isConnected {
+                Circle()
+                    .fill(Color.green.opacity(0.4))
+                    .frame(width: 12, height: 12)
+                    .scaleEffect(pulse ? 1.6 : 1)
+                    .opacity(pulse ? 0 : 1)
+            }
+
+            Circle()
+                .fill(isConnected ? Color.green : Color.gray)
+                .frame(width: 6, height: 6)
+        }
+        .onAppear {
+            guard isConnected else { return }
+            withAnimation(
+                .easeOut(duration: 1.2)
+                    .repeatForever(autoreverses: false)
+            ) {
+                pulse = true
             }
         }
+    }
+}
+
+struct QuickCard: View {
+    var icon: String?
+    var image: String?
+    var title: String?
+    var imageSize: CGFloat = 28
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 10) {
+                ZStack {
+                    if let image {
+                        Image(image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: imageSize, height: imageSize)
+                    } else if let icon {
+                        Image(systemName: icon)
+                            .font(.system(size: imageSize))
+                            .foregroundColor(.primary)
+                    }
+                }
+
+                if let title {
+                    Text(title)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.onSurfaceVariant)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 80)
+            .padding(.vertical, 10)
+            .background(Color.surfaceContainerLow)
+            .cornerRadius(12)
+        }
+    }
+}
+
+struct ModernFeatureCard: View {
+    var title: String
+    var desc: String
+    var icon: String
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .foregroundColor(.primaryContainer)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.onSurface)
+
+                Text(desc)
+                    .font(.system(size: 13))
+                    .foregroundColor(.onSurfaceVariant)
+            }
+
+            Spacer()
+        }
+        .padding()
+        .background(Color.surfaceContainerHigh)
+        .cornerRadius(14)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.outlineVariant.opacity(0.15))
+        )
     }
 }
 

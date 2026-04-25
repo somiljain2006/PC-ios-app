@@ -70,7 +70,7 @@ struct PCEditorialCard: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
                     .background(Color.primaryContainer)
-                    .cornerRadius(999)
+                    .cornerRadius(10)
                 }
             }
         }
