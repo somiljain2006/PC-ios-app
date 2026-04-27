@@ -6,12 +6,176 @@
 //
 
 import SwiftUI
+import UIKit
+
+func triggerHaptic() {
+    let generator = UIImpactFeedbackGenerator(style: .medium)
+    generator.prepare()
+    generator.impactOccurred()
+}
+
+class ProblemCache {
+    static let shared = ProblemCache()
+    var cfProblems: [CFProblem]?
+    var acProblems: [ACProblem]?
+}
+
+struct UnifiedProblem: Identifiable, Codable {
+    let id: UUID
+    let name: String
+    let platform: String
+    let identifier: String
+    let tags: [String]
+    let url: URL?
+    let icon: String
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        platform: String,
+        identifier: String,
+        tags: [String],
+        url: URL?,
+        icon: String
+    ) {
+        self.id = id
+        self.name = name
+        self.platform = platform
+        self.identifier = identifier
+        self.tags = tags
+        self.url = url
+        self.icon = icon
+    }
+
+    func copy() -> UnifiedProblem {
+        UnifiedProblem(
+            name: name,
+            platform: platform,
+            identifier: identifier,
+            tags: tags,
+            url: url,
+            icon: icon
+        )
+    }
+}
+
+struct CFProblemResponse: Codable {
+    let status: String
+    let result: CFProblemResult
+}
+
+struct CFProblemResult: Codable {
+    let problems: [CFProblem]
+}
+
+struct CFProblem: Codable {
+    let contestId: Int?
+    let index: String
+    let name: String
+    let tags: [String]
+
+    var problemUrl: URL? {
+        guard let cid = contestId else { return nil }
+        return URL(string: "https://codeforces.com/problemset/problem/\(cid)/\(index)")
+    }
+}
+
+struct CCProblemResponse: Codable {
+    let status: String
+    let data: [CCProblem]
+}
+
+struct CCProblem: Codable {
+    let code: String
+    let name: String
+
+    var problemUrl: URL? {
+        URL(string: "https://www.codechef.com/problems/\(code)")
+    }
+}
+
+struct LCGraphQLResponse: Codable {
+    let data: LCData
+}
+
+struct LCData: Codable {
+    let activeDailyCodingChallengeQuestion: LCActiveQuestion
+}
+
+struct LCActiveQuestion: Codable {
+    let date: String
+    let link: String
+    let question: LCQuestion
+}
+
+struct LCQuestion: Codable {
+    let questionFrontendId: String
+    let title: String
+    let difficulty: String
+    let topicTags: [LCTopicTag]
+}
+
+struct LCTopicTag: Codable {
+    let name: String
+}
+
+struct ACProblem: Codable {
+    let id: String
+    let contestId: String
+    let problemIndex: String
+    let name: String
+    let title: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case contestId = "contest_id"
+        case problemIndex = "problem_index"
+        case name
+        case title
+    }
+
+    var problemUrl: URL? {
+        URL(string: "https://atcoder.jp/contests/\(contestId)/tasks/\(id)")
+    }
+}
 
 struct HomeView: View {
     @State private var selectedTab: String = "home"
     @StateObject private var network = NetworkMonitor()
     @State private var animateTitle = false
     @State private var glow = false
+
+    @State private var challengeSlides: [UnifiedProblem] = []
+    @State private var loopedSlides: [UnifiedProblem] = []
+    @State private var isLoadingChallenge = false
+
+    @State private var selectedSlideIndex: Int = 1
+
+    private var dailyChallengeTitle: String {
+        guard loopedSlides.indices.contains(selectedSlideIndex) else {
+            return "Daily Challenges"
+        }
+        let slide = loopedSlides[selectedSlideIndex]
+        if slide.platform.starts(with: "Daily Pick") {
+            return "Daily Challenge"
+        } else {
+            return "Daily \(slide.platform) Challenge"
+        }
+    }
+
+    private var realIndex: Int {
+        let count = challengeSlides.count
+        guard count > 0 else { return 0 }
+
+        if selectedSlideIndex == 0 {
+            return count - 1
+        } else if selectedSlideIndex == loopedSlides.count - 1 {
+            return 0
+        } else {
+            return selectedSlideIndex - 1
+        }
+    }
+
     var body: some View {
         ZStack {
             Color.background
@@ -70,6 +234,11 @@ struct HomeView: View {
             }
             .ignoresSafeArea(edges: .bottom)
         }
+        .task {
+            if challengeSlides.isEmpty {
+                await loadAllChallenges()
+            }
+        }
     }
 
     private var homeContent: some View {
@@ -120,8 +289,7 @@ struct HomeView: View {
                         }
                     }
                     .onAppear {
-                        withAnimation(.easeOut(duration: 0.6)) { animateTitle = true
-                        }
+                        withAnimation(.easeOut(duration: 0.6)) { animateTitle = true }
                     }
 
                     Text("""
@@ -157,6 +325,104 @@ struct HomeView: View {
                     }
                     .disabled(!network.isConnected)
                     .padding(.top, 6)
+                }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text(dailyChallengeTitle)
+                            .font(.headline)
+                            .foregroundColor(.onSurface)
+                            .animation(.easeInOut, value: selectedSlideIndex)
+
+                        Spacer()
+
+                        if isLoadingChallenge {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            if PinnedChallengeManager.load() != nil {
+                                Button {
+                                    PinnedChallengeManager.clear()
+                                    Task { await loadAllChallenges() }
+                                } label: {
+                                    Image(systemName: "pin.slash")
+                                        .foregroundColor(.primaryContainer)
+                                }
+                            }
+                            Button {
+                                Task { await loadAllChallenges() }
+                            } label: {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.primaryContainer)
+                                    .padding(8)
+                                    .background(Color.surfaceContainerHigh)
+                                    .clipShape(Circle())
+                            }
+                        }
+                    }
+
+                    if !loopedSlides.isEmpty {
+                        VStack(spacing: 0) {
+                            TabView(selection: $selectedSlideIndex) {
+                                ForEach(Array(loopedSlides.enumerated()), id: \.element.id) { index, problem in
+                                    DailyChallengeCard(
+                                        problem: problem,
+                                        onTogglePin: { selected in
+                                            if let pinned = PinnedChallengeManager.load(),
+                                               pinned.identifier == selected.identifier
+                                            {
+                                                PinnedChallengeManager.clear()
+                                                Task { await loadAllChallenges() }
+
+                                            } else {
+                                                PinnedChallengeManager.save(selected)
+                                                applyPinnedChallenge(selected)
+                                            }
+                                        }
+                                    )
+                                    .padding(.horizontal, 2)
+                                    .tag(index)
+                                }
+                            }
+                            .tabViewStyle(.page(indexDisplayMode: .never))
+                            .frame(height: 240)
+                            .onChange(of: selectedSlideIndex) { newValue in
+                                let count = loopedSlides.count
+                                guard count > 2 else { return }
+
+                                if newValue == 0 {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        selectedSlideIndex = count - 2
+                                    }
+                                } else if newValue == count - 1 {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        selectedSlideIndex = 1
+                                    }
+                                }
+                            }
+
+                            HStack(spacing: 8) {
+                                ForEach(0 ..< challengeSlides.count, id: \.self) { index in
+                                    Circle()
+                                        .fill(realIndex == index ? Color.primaryContainer : Color.outlineVariant.opacity(0.4))
+                                        .frame(width: 8, height: 8)
+                                        .animation(.easeInOut(duration: 0.2), value: realIndex)
+                                }
+                            }
+                            .padding(.top, 16)
+                            .padding(.bottom, 4)
+                        }
+                    } else if !isLoadingChallenge {
+                        Text("Connect to the internet to get today's challenge.")
+                            .font(.caption)
+                            .foregroundColor(.onSurfaceVariant)
+                            .padding(.vertical, 20)
+                    } else {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.surfaceContainerHigh)
+                            .frame(height: 180)
+                    }
                 }
 
                 VStack(alignment: .leading, spacing: 12) {
@@ -212,6 +478,201 @@ struct HomeView: View {
         }
     }
 
+    private func loadAllChallenges() async {
+        isLoadingChallenge = true
+        defer { isLoadingChallenge = false }
+
+        async let cf = fetchCodeforcesProblem()
+        async let cc = fetchCodeChefProblem()
+        async let lc = fetchLeetCodeProblem()
+        async let ac = fetchAtCoderProblem()
+
+        let (fetchedCF, fetchedCC, fetchedLC, fetchedAC) = await (cf, cc, lc, ac)
+
+        var slides: [UnifiedProblem] = []
+
+        if let fetchedCF { slides.append(fetchedCF) }
+        if let fetchedCC { slides.append(fetchedCC) }
+        if let fetchedAC { slides.append(fetchedAC) }
+        if let fetchedLC { slides.append(fetchedLC) }
+
+        if let randomDefault = slides.randomElement() {
+            let dp = UnifiedProblem(
+                name: randomDefault.name,
+                platform: "Daily Pick (\(randomDefault.platform))",
+                identifier: randomDefault.identifier,
+                tags: randomDefault.tags,
+                url: randomDefault.url,
+                icon: randomDefault.icon
+            )
+            slides.insert(dp, at: 0)
+        }
+
+        if let pinned = PinnedChallengeManager.load() {
+            injectPinnedProblem(pinned, into: &slides)
+        }
+
+        var ghosts = slides
+        if let first = slides.first, let last = slides.last {
+            ghosts.insert(last.copy(), at: 0)
+            ghosts.append(first.copy())
+        }
+
+        withAnimation(.easeInOut) {
+            challengeSlides = slides
+            loopedSlides = ghosts
+            selectedSlideIndex = 1
+        }
+    }
+
+    private func injectPinnedProblem(_ pinned: UnifiedProblem, into slides: inout [UnifiedProblem]) {
+        let isPinnedDP = pinned.platform.starts(with: "Daily Pick")
+
+        slides.removeAll { slide in
+            if slide.identifier == pinned.identifier { return true }
+
+            if isPinnedDP, slide.platform.starts(with: "Daily Pick") { return true }
+
+            if !isPinnedDP, slide.platform == pinned.platform { return true }
+
+            return false
+        }
+
+        slides.insert(pinned.copy(), at: 0)
+    }
+
+    private func fetchCodeforcesProblem() async -> UnifiedProblem? {
+        if let cached = ProblemCache.shared.cfProblems, let randomProblem = cached.randomElement() {
+            return mapCF(randomProblem)
+        }
+
+        guard let url = URL(string: "https://codeforces.com/api/problemset.problems") else { return nil }
+        var request = URLRequest(url: url)
+        request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)", forHTTPHeaderField: "User-Agent")
+
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let decoded = try JSONDecoder().decode(CFProblemResponse.self, from: data)
+            ProblemCache.shared.cfProblems = decoded.result.problems
+            if let randomProblem = decoded.result.problems.randomElement() {
+                return mapCF(randomProblem)
+            }
+        } catch {
+            print("Failed to fetch CF: \(error.localizedDescription)")
+        }
+        return nil
+    }
+
+    private func fetchCodeChefProblem() async -> UnifiedProblem? {
+        let randomPage = Int.random(in: 1 ... 50)
+        guard let url = URL(string: "https://www.codechef.com/api/list/problems?page=\(randomPage)&limit=50") else { return nil }
+
+        var request = URLRequest(url: url)
+        request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko)", forHTTPHeaderField: "User-Agent")
+
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let decoded = try JSONDecoder().decode(CCProblemResponse.self, from: data)
+
+            if let randomProblem = decoded.data.randomElement() {
+                return UnifiedProblem(
+                    name: randomProblem.name.trimmingCharacters(in: .whitespacesAndNewlines),
+                    platform: "CodeChef",
+                    identifier: randomProblem.code,
+                    tags: ["Practice", "CodeChef"],
+                    url: randomProblem.problemUrl,
+                    icon: "codechef"
+                )
+            }
+        } catch {
+            print("Failed to fetch CodeChef: \(error.localizedDescription)")
+        }
+        return nil
+    }
+
+    private func fetchLeetCodeProblem() async -> UnifiedProblem? {
+        guard let url = URL(string: "https://leetcode.com/graphql") else { return nil }
+
+        let queryBody = """
+        {
+            "query": "query { activeDailyCodingChallengeQuestion { date link question { questionFrontendId title difficulty topicTags { name } } } }"
+        }
+        """
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = queryBody.data(using: .utf8)
+
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let decoded = try JSONDecoder().decode(LCGraphQLResponse.self, from: data)
+
+            let challengeData = decoded.data.activeDailyCodingChallengeQuestion
+            let question = challengeData.question
+
+            let mappedTags = question.topicTags.map(\.name)
+            var finalTags = Array(mappedTags.prefix(3))
+            if finalTags.count < 3 { finalTags.append(question.difficulty) }
+
+            return UnifiedProblem(
+                name: question.title,
+                platform: "LeetCode",
+                identifier: "Daily \(challengeData.date)",
+                tags: finalTags,
+                url: URL(string: "https://leetcode.com\(challengeData.link)"),
+                icon: "leetcode"
+            )
+        } catch {
+            print("Failed to fetch LeetCode: \(error.localizedDescription)")
+        }
+        return nil
+    }
+
+    private func fetchAtCoderProblem() async -> UnifiedProblem? {
+        if let cached = ProblemCache.shared.acProblems, let randomProblem = cached.randomElement() {
+            return mapAC(randomProblem)
+        }
+
+        guard let url = URL(string: "https://kenkoooo.com/atcoder/resources/problems.json") else { return nil }
+        var request = URLRequest(url: url)
+        request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)", forHTTPHeaderField: "User-Agent")
+
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let decoded = try JSONDecoder().decode([ACProblem].self, from: data)
+            ProblemCache.shared.acProblems = decoded
+            if let randomProblem = decoded.randomElement() {
+                return mapAC(randomProblem)
+            }
+        } catch {
+            print("Failed to fetch AtCoder: \(error.localizedDescription)")
+        }
+        return nil
+    }
+
+    private func mapCF(_ problem: CFProblem) -> UnifiedProblem {
+        UnifiedProblem(
+            name: problem.name,
+            platform: "Codeforces",
+            identifier: "\(problem.contestId ?? 0)\(problem.index)",
+            tags: Array(problem.tags.prefix(3)),
+            url: problem.problemUrl,
+            icon: "codeforces"
+        )
+    }
+
+    private func mapAC(_ problem: ACProblem) -> UnifiedProblem {
+        UnifiedProblem(
+            name: problem.name,
+            platform: "AtCoder",
+            identifier: "\(problem.contestId) \(problem.problemIndex)",
+            tags: ["AtCoder", "Practice"],
+            url: problem.problemUrl,
+            icon: "atcoder"
+        )
+    }
+
     private func handleJoinCommunity() {
         if let url = URL(string: "https://www.programmingclub.live/") {
             UIApplication.shared.open(url)
@@ -221,6 +682,180 @@ struct HomeView: View {
     private func openURL(_ string: String) {
         if let url = URL(string: string) {
             UIApplication.shared.open(url)
+        }
+    }
+
+    private func applyPinnedChallenge(_ problem: UnifiedProblem) {
+        guard !challengeSlides.isEmpty else {
+            challengeSlides = [problem]
+            loopedSlides = [problem, problem.copy(), problem.copy()]
+            selectedSlideIndex = 1
+            return
+        }
+
+        var baseSlides = challengeSlides
+        injectPinnedProblem(problem, into: &baseSlides)
+
+        var ghosts = baseSlides
+        if let first = baseSlides.first, let last = baseSlides.last {
+            ghosts.insert(last.copy(), at: 0)
+            ghosts.append(first.copy())
+        }
+
+        withAnimation {
+            challengeSlides = baseSlides
+            loopedSlides = ghosts
+            selectedSlideIndex = 1
+        }
+    }
+}
+
+struct DailyChallengeCard: View {
+    let problem: UnifiedProblem
+    let onTogglePin: (UnifiedProblem) -> Void
+
+    @State private var isPressed = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(problem.name)
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.onSurface)
+                        .lineLimit(2)
+
+                    Text("\(problem.platform) • \(problem.identifier)")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.onSurfaceVariant)
+
+                    FlowLayout(data: problem.tags) { tag in
+                        Text(tag)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.primaryContainer)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color.primaryContainer.opacity(0.15))
+                            .cornerRadius(6)
+                    }
+                    .padding(.top, 4)
+                }
+
+                Spacer()
+
+                Image(problem.icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+            }
+
+            Spacer(minLength: 0)
+
+            Button {
+                if let url = problem.url {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                HStack {
+                    Spacer()
+                    Text("Solve Problem")
+                    Image(systemName: "arrow.up.right")
+                    Spacer()
+                }
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(.black)
+                .padding(.vertical, 12)
+                .background(Color.primaryContainer)
+                .cornerRadius(10)
+            }
+        }
+        .padding(16)
+        .background(Color.surfaceContainerHigh)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.primaryContainer.opacity(0.3))
+        )
+        .scaleEffect(isPressed ? 0.96 : 1)
+        .onLongPressGesture(
+            minimumDuration: 0.6,
+            pressing: { pressing in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isPressed = pressing
+                }
+            },
+            perform: {
+                triggerHaptic()
+                onTogglePin(problem)
+            }
+        )
+    }
+}
+
+struct FlowLayout<Item: Hashable, Content: View>: View {
+    let data: [Item]
+    let spacing: CGFloat
+    let content: (Item) -> Content
+
+    init(
+        data: [Item],
+        spacing: CGFloat = 6,
+        @ViewBuilder content: @escaping (Item) -> Content
+    ) {
+        self.data = data
+        self.spacing = spacing
+        self.content = content
+    }
+
+    @State private var totalHeight: CGFloat = .zero
+
+    var body: some View {
+        GeometryReader { geometry in
+            generateContent(in: geometry)
+        }
+        .frame(height: totalHeight)
+    }
+
+    private func generateContent(in geo: GeometryProxy) -> some View {
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+
+        return ZStack(alignment: .topLeading) {
+            ForEach(data, id: \.self) { item in
+                content(item)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 2)
+                    .alignmentGuide(.leading) { dimension in
+                        if abs(width - dimension.width) > geo.size.width {
+                            width = 0
+                            height -= dimension.height + spacing
+                        }
+                        let result = width
+                        if item == data.last {
+                            width = 0
+                        } else {
+                            width -= dimension.width + spacing
+                        }
+                        return result
+                    }
+                    .alignmentGuide(.top) { _ in
+                        let result = height
+                        if item == data.last {
+                            height = 0
+                        }
+                        return result
+                    }
+            }
+        }
+        .background(viewHeightReader($totalHeight))
+    }
+
+    private func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
+        GeometryReader { geo -> Color in
+            DispatchQueue.main.async {
+                binding.wrappedValue = geo.size.height
+            }
+            return Color.clear
         }
     }
 }
@@ -349,96 +984,6 @@ struct ModernFeatureCard: View {
     }
 }
 
-struct StatsBoardCard: View {
-    var body: some View {
-        VStack(spacing: 36) {
-            HStack(spacing: 0) {
-                StatItemView(number: "500+", label: "ACTIVE MEMBERS")
-                    .frame(maxWidth: .infinity)
-
-                StatItemView(number: "120+", label: "WEEKLY CONTESTS")
-                    .frame(maxWidth: .infinity)
-            }
-
-            StatItemView(number: "10+", label: "EDITORIAL WRITTEN")
-        }
-        .padding(.vertical, 40)
-        .frame(maxWidth: .infinity)
-        .background(Color.surfaceContainerHigh)
-        .cornerRadius(16)
-    }
-}
-
-struct StatItemView: View {
-    var number: String
-    var label: String
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Text(number)
-                .font(.system(size: 38, weight: .bold))
-                .foregroundColor(Color.onSurfaceVariant)
-
-            Text(label)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(Color.onSurfaceVariant)
-                .tracking(1.5)
-        }
-    }
-}
-
-struct StatCard: View {
-    var title: String
-    var subtitle: String
-
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text(title)
-                .font(.title.bold())
-                .foregroundColor(Color.onSurface)
-
-            Text(subtitle.uppercased())
-                .font(.caption2)
-                .foregroundColor(Color.onSurfaceVariant)
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(Color.surfaceContainerLow)
-        .cornerRadius(12)
-    }
-}
-
-struct FeatureCard: View {
-    var icon: String
-    var title: String
-    var desc: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .foregroundColor(Color.primary)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .foregroundColor(Color.onSurface)
-                    .fontWeight(.bold)
-
-                Text(desc)
-                    .foregroundColor(Color.onSurfaceVariant)
-                    .font(.caption)
-                    .lineLimit(3)
-            }
-
-            Spacer()
-        }
-        .padding()
-        .frame(maxWidth: .infinity, minHeight: 110)
-        .background(Color.surfaceContainerHigh)
-        .cornerRadius(12)
-    }
-}
-
 struct NavItem: View {
     var icon: String
     var title: String
@@ -455,41 +1000,25 @@ struct NavItem: View {
     }
 }
 
-struct SocialButton: View {
-    var imageName: String?
-    var systemName: String?
-    var url: String
+class PinnedChallengeManager {
+    private static let key = "pinned_challenge"
 
-    var body: some View {
-        if let validURL = URL(string: url) {
-            Link(destination: validURL) {
-                buttonLabel
-            }
+    static func save(_ problem: UnifiedProblem) {
+        if let data = try? JSONEncoder().encode(problem) {
+            UserDefaults.standard.set(data, forKey: key)
         }
     }
 
-    private var buttonLabel: some View {
-        ZStack {
-            Circle()
-                .fill(Color.surfaceContainerHigh)
-                .frame(width: 50, height: 50)
-                .overlay(
-                    Circle()
-                        .stroke(Color.outlineVariant.opacity(0.2), lineWidth: 1)
-                )
+    static func load() -> UnifiedProblem? {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let problem = try? JSONDecoder().decode(UnifiedProblem.self, from: data)
+        else { return nil }
 
-            if let systemName {
-                Image(systemName: systemName)
-                    .font(.system(size: 22))
-                    .foregroundColor(Color.primary)
-            } else if let imageName {
-                Image(imageName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: imageName == "Web" ? 32 : 26,
-                           height: imageName == "Web" ? 32 : 26)
-            }
-        }
+        return problem
+    }
+
+    static func clear() {
+        UserDefaults.standard.removeObject(forKey: key)
     }
 }
 
