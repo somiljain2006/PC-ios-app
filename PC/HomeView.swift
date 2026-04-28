@@ -150,6 +150,7 @@ struct HomeView: View {
     @State private var isLoadingChallenge = false
 
     @State private var selectedSlideIndex: Int = 1
+    @GestureState private var dragOffset: CGFloat = 0
 
     private var dailyChallengeTitle: String {
         guard loopedSlides.indices.contains(selectedSlideIndex) else {
@@ -174,6 +175,11 @@ struct HomeView: View {
         } else {
             return selectedSlideIndex - 1
         }
+    }
+
+    private var isPinnedCardSelected: Bool {
+        guard PinnedChallengeManager.load() != nil else { return false }
+        return realIndex == 0
     }
 
     var body: some View {
@@ -340,7 +346,7 @@ struct HomeView: View {
                             ProgressView()
                                 .scaleEffect(0.8)
                         } else {
-                            if PinnedChallengeManager.load() != nil {
+                            if isPinnedCardSelected {
                                 Button {
                                     PinnedChallengeManager.clear()
                                     Task { await loadAllChallenges() }
@@ -364,52 +370,74 @@ struct HomeView: View {
 
                     if !loopedSlides.isEmpty {
                         VStack(spacing: 0) {
-                            TabView(selection: $selectedSlideIndex) {
-                                ForEach(Array(loopedSlides.enumerated()), id: \.element.id) { index, problem in
-                                    DailyChallengeCard(
-                                        problem: problem,
-                                        onTogglePin: { selected in
-                                            if let pinned = PinnedChallengeManager.load(),
-                                               pinned.identifier == selected.identifier
-                                            {
-                                                PinnedChallengeManager.clear()
-                                                Task { await loadAllChallenges() }
+                            GeometryReader { geo in
+                                let spacing: CGFloat = 16
+                                let leadingPadding: CGFloat = 16
+                                let peekAmount: CGFloat = 40
 
-                                            } else {
-                                                PinnedChallengeManager.save(selected)
-                                                applyPinnedChallenge(selected)
+                                let cardWidth = geo.size.width - leadingPadding - spacing - peekAmount
+
+                                HStack(spacing: spacing) {
+                                    ForEach(Array(loopedSlides.enumerated()), id: \.element.id) { _, problem in
+                                        DailyChallengeCard(
+                                            problem: problem,
+                                            onTogglePin: { selected in
+                                                if let pinned = PinnedChallengeManager.load(),
+                                                   pinned.identifier == selected.identifier
+                                                {
+                                                    PinnedChallengeManager.clear()
+                                                    Task { await loadAllChallenges() }
+                                                } else {
+                                                    PinnedChallengeManager.save(selected)
+                                                    Task { await loadAllChallenges() }
+                                                }
+                                            }
+                                        )
+                                        .frame(width: cardWidth)
+                                    }
+                                }
+                                .padding(.leading, leadingPadding)
+                                .offset(x: -(CGFloat(selectedSlideIndex) * (cardWidth + spacing)))
+                                .offset(x: dragOffset)
+                                .animation(.interactiveSpring(response: 0.35, dampingFraction: 0.8), value: dragOffset)
+                                .gesture(
+                                    DragGesture(minimumDistance: 15)
+                                        .updating($dragOffset) { value, state, _ in
+                                            state = value.translation.width
+                                        }
+                                        .onEnded { value in
+                                            let swipeDistance = value.predictedEndTranslation.width
+                                            var newIndex = selectedSlideIndex
+
+                                            if swipeDistance < -cardWidth / 3 {
+                                                newIndex = min(loopedSlides.count - 1, selectedSlideIndex + 1)
+                                            } else if swipeDistance > cardWidth / 3 {
+                                                newIndex = max(0, selectedSlideIndex - 1)
+                                            }
+
+                                            withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+                                                selectedSlideIndex = newIndex
                                             }
                                         }
-                                    )
-                                    .padding(.horizontal, 2)
-                                    .tag(index)
-                                }
+                                )
                             }
-                            .tabViewStyle(.page(indexDisplayMode: .never))
                             .frame(height: 240)
                             .onChange(of: selectedSlideIndex) { newValue in
                                 let count = loopedSlides.count
                                 guard count > 2 else { return }
 
                                 if newValue == 0 {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
                                         selectedSlideIndex = count - 2
                                     }
                                 } else if newValue == count - 1 {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
                                         selectedSlideIndex = 1
                                     }
                                 }
                             }
-
-                            HStack(spacing: 8) {
-                                ForEach(0 ..< challengeSlides.count, id: \.self) { index in
-                                    Circle()
-                                        .fill(realIndex == index ? Color.primaryContainer : Color.outlineVariant.opacity(0.4))
-                                        .frame(width: 8, height: 8)
-                                        .animation(.easeInOut(duration: 0.2), value: realIndex)
-                                }
-                            }
+                            .padding(.horizontal, -16)
+                            .clipped()
                             .padding(.top, 16)
                             .padding(.bottom, 4)
                         }
@@ -496,20 +524,22 @@ struct HomeView: View {
         if let fetchedAC { slides.append(fetchedAC) }
         if let fetchedLC { slides.append(fetchedLC) }
 
-        if let randomDefault = slides.randomElement() {
-            let dp = UnifiedProblem(
-                name: randomDefault.name,
-                platform: "Daily Pick (\(randomDefault.platform))",
-                identifier: randomDefault.identifier,
-                tags: randomDefault.tags,
-                url: randomDefault.url,
-                icon: randomDefault.icon
-            )
-            slides.insert(dp, at: 0)
-        }
-
         if let pinned = PinnedChallengeManager.load() {
-            injectPinnedProblem(pinned, into: &slides)
+            slides.removeAll { pinned.platform.contains($0.platform) }
+
+            slides.insert(pinned.copy(), at: 0)
+        } else {
+            if let randomDefault = slides.randomElement() {
+                let dp = UnifiedProblem(
+                    name: randomDefault.name,
+                    platform: "Daily Pick (\(randomDefault.platform))",
+                    identifier: randomDefault.identifier,
+                    tags: randomDefault.tags,
+                    url: randomDefault.url,
+                    icon: randomDefault.icon
+                )
+                slides.insert(dp, at: 0)
+            }
         }
 
         var ghosts = slides
@@ -523,22 +553,6 @@ struct HomeView: View {
             loopedSlides = ghosts
             selectedSlideIndex = 1
         }
-    }
-
-    private func injectPinnedProblem(_ pinned: UnifiedProblem, into slides: inout [UnifiedProblem]) {
-        let isPinnedDP = pinned.platform.starts(with: "Daily Pick")
-
-        slides.removeAll { slide in
-            if slide.identifier == pinned.identifier { return true }
-
-            if isPinnedDP, slide.platform.starts(with: "Daily Pick") { return true }
-
-            if !isPinnedDP, slide.platform == pinned.platform { return true }
-
-            return false
-        }
-
-        slides.insert(pinned.copy(), at: 0)
     }
 
     private func fetchCodeforcesProblem() async -> UnifiedProblem? {
@@ -682,30 +696,6 @@ struct HomeView: View {
     private func openURL(_ string: String) {
         if let url = URL(string: string) {
             UIApplication.shared.open(url)
-        }
-    }
-
-    private func applyPinnedChallenge(_ problem: UnifiedProblem) {
-        guard !challengeSlides.isEmpty else {
-            challengeSlides = [problem]
-            loopedSlides = [problem, problem.copy(), problem.copy()]
-            selectedSlideIndex = 1
-            return
-        }
-
-        var baseSlides = challengeSlides
-        injectPinnedProblem(problem, into: &baseSlides)
-
-        var ghosts = baseSlides
-        if let first = baseSlides.first, let last = baseSlides.last {
-            ghosts.insert(last.copy(), at: 0)
-            ghosts.append(first.copy())
-        }
-
-        withAnimation {
-            challengeSlides = baseSlides
-            loopedSlides = ghosts
-            selectedSlideIndex = 1
         }
     }
 }

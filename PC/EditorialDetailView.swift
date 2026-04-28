@@ -31,6 +31,7 @@ struct EditorialDetailView: View {
                                 Text("Open contest link")
                                     .font(.headline.bold())
                                     .foregroundColor(.white)
+                                Image(systemName: "arrow.up.right")
                             }
                         }
                     }
