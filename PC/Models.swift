@@ -230,3 +230,144 @@ struct PCQuestion: Codable, Identifiable, Hashable {
         case questionLink = "question_link"
     }
 }
+
+struct ChatGroup: Identifiable, Codable {
+    let id: UUID
+    let name: String
+}
+
+struct ChatMessage: Identifiable, Codable {
+    let id: UUID
+    let group_id: UUID
+    let sender_id: UUID
+    let message: String
+    let created_at: String
+    var profiles: ProfileRow?
+}
+
+struct UsernameCheck: Codable {
+    let id: String
+}
+
+struct ProfileLookup: Codable {
+    let email: String
+}
+
+struct UnifiedProblem: Identifiable, Codable {
+    let id: UUID
+    let name: String
+    let platform: String
+    let identifier: String
+    let tags: [String]
+    let url: URL?
+    let icon: String
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        platform: String,
+        identifier: String,
+        tags: [String],
+        url: URL?,
+        icon: String
+    ) {
+        self.id = id
+        self.name = name
+        self.platform = platform
+        self.identifier = identifier
+        self.tags = tags
+        self.url = url
+        self.icon = icon
+    }
+
+    func copy() -> UnifiedProblem {
+        UnifiedProblem(
+            name: name,
+            platform: platform,
+            identifier: identifier,
+            tags: tags,
+            url: url,
+            icon: icon
+        )
+    }
+}
+
+struct CFProblemResponse: Codable {
+    let status: String
+    let result: CFProblemResult
+}
+
+struct CFProblemResult: Codable {
+    let problems: [CFProblem]
+}
+
+struct CFProblem: Codable {
+    let contestId: Int?
+    let index: String
+    let name: String
+    let tags: [String]
+
+    var problemUrl: URL? {
+        guard let cid = contestId else { return nil }
+        return URL(string: "https://codeforces.com/problemset/problem/\(cid)/\(index)")
+    }
+}
+
+struct CCProblemResponse: Codable {
+    let status: String
+    let data: [CCProblem]
+}
+
+struct CCProblem: Codable {
+    let code: String
+    let name: String
+
+    var problemUrl: URL? {
+        URL(string: "https://www.codechef.com/problems/\(code)")
+    }
+}
+
+struct LCGraphQLResponse: Codable {
+    let data: LCData
+}
+
+struct LCData: Codable {
+    let activeDailyCodingChallengeQuestion: LCActiveQuestion
+}
+
+struct LCActiveQuestion: Codable {
+    let date: String
+    let link: String
+    let question: LCQuestion
+}
+
+struct LCQuestion: Codable {
+    let questionFrontendId: String
+    let title: String
+    let difficulty: String
+    let topicTags: [LCTopicTag]
+}
+
+struct LCTopicTag: Codable {
+    let name: String
+}
+
+struct ACProblem: Codable {
+    let id: String
+    let contestId: String
+    let problemIndex: String
+    let name: String
+    let title: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case contestId = "contest_id"
+        case problemIndex = "problem_index"
+        case name
+        case title
+    }
+
+    var problemUrl: URL? {
+        URL(string: "https://atcoder.jp/contests/\(contestId)/tasks/\(id)")
+    }
+}

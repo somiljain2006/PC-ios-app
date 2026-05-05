@@ -38,10 +38,24 @@ struct CalendarCell: View {
             Spacer()
 
             if icons.count == 1 {
-                Image(icons[0])
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 28)
+                if let iconName = icons.first {
+                    if iconName == "codechef" || iconName == "atcoder" {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.7))
+                                .frame(width: 32, height: 32)
+                            Image(iconName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 28)
+                        }
+                    } else {
+                        Image(iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 28)
+                    }
+                }
 
             } else if icons.count > 1 {
                 Image(systemName: "calendar.badge.plus")
