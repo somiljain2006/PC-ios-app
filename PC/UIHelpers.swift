@@ -5,13 +5,6 @@
 //  Created by somil jain on 05/05/26.
 //
 
-//
-//  UIHelpers.swift
-//  PC
-//
-//  Created by somil jain on 06/05/26.
-//
-
 import SwiftUI
 import UIKit
 
