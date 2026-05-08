@@ -297,8 +297,22 @@ struct NavItem: View {
     }
 }
 
+struct TabItem {
+    let id: String
+    let icon: String
+    let title: String
+}
+
 struct CustomBottomNavBar: View {
     @Binding var selectedTab: String
+
+    private let tabs: [TabItem] = [
+        TabItem(id: "home", icon: "house.fill", title: "Home"),
+        TabItem(id: "editorial", icon: "doc.text", title: "Editorial"),
+        TabItem(id: "askpc", icon: "sparkles", title: "Ask PC"),
+        TabItem(id: "events", icon: "calendar", title: "Events"),
+        TabItem(id: "about", icon: "person.3", title: "About"),
+    ]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -309,10 +323,15 @@ struct CustomBottomNavBar: View {
                 .frame(height: 1)
 
             HStack {
-                Button { selectedTab = "home" } label: { NavItem(icon: "house.fill", title: "Home", active: selectedTab == "home") }
-                Button { selectedTab = "editorial" } label: { NavItem(icon: "doc.text", title: "Editorial", active: selectedTab == "editorial") }
-                Button { selectedTab = "events" } label: { NavItem(icon: "calendar", title: "Events", active: selectedTab == "events") }
-                Button { selectedTab = "about" } label: { NavItem(icon: "person.3", title: "About", active: selectedTab == "about") }
+                ForEach(tabs, id: \.id) { tab in
+                    Button { selectedTab = tab.id } label: {
+                        NavItem(
+                            icon: tab.icon,
+                            title: tab.title,
+                            active: selectedTab == tab.id
+                        )
+                    }
+                }
             }
             .buttonStyle(.plain)
             .padding(.horizontal)
