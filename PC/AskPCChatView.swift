@@ -68,8 +68,6 @@ struct AskPCChatView: View {
         .onAppear { initSession() }
     }
 
-    // MARK: - Body Fragments
-
     private var headerBadge: some View {
         HStack(spacing: 6) {
             Image(systemName: "sparkles").font(.system(size: 11, weight: .bold))
@@ -140,8 +138,6 @@ struct AskPCChatView: View {
         .padding(.vertical, 10)
         .background(Color.background)
     }
-
-    // MARK: - Logic (unchanged)
 
     private var trimmedInput: String {
         inputText.trimmingCharacters(in: .whitespaces)
