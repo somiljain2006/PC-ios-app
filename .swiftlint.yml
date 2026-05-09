@@ -1,0 +1,21 @@
+disabled_rules:
+  - trailing_whitespace
+  - trailing_comma
+  - opening_brace
+
+opt_in_rules:
+  - empty_count
+  - force_unwrapping
+
+line_length: 250
+
+identifier_name:
+  min_length: 2
+  max_length: 40
+  allowed_symbols: ["_"]
+
+excluded:
+  - Frameworks
+  - Products
+  - .build
+  - DerivedData

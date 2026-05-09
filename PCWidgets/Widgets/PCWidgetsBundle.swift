@@ -5,8 +5,8 @@
 //  Created by somil jain on 09/05/26.
 //
 
-import WidgetKit
 import SwiftUI
+import WidgetKit
 
 @main
 struct PCWidgetsBundle: WidgetBundle {

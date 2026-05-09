@@ -42,7 +42,7 @@ extension PCWidgetsControl {
         }
 
         func currentValue(configuration: TimerConfiguration) async throws -> Value {
-            let isRunning = true 
+            let isRunning = true
             return PCWidgetsControl.Value(isRunning: isRunning, name: configuration.timerName)
         }
     }
@@ -71,6 +71,6 @@ struct StartTimerIntent: SetValueIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        return .result()
+        .result()
     }
 }

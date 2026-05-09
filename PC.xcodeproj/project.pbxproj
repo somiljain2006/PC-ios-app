@@ -257,7 +257,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = "/bin/sh ";
-			shellScript = "export PATH=\"/opt/homebrew/bin:$PATH\"\n\necho \"Project dir: $PROJECT_DIR\"\n\nSOURCE_DIR=\"$PROJECT_DIR/PC\"\n\n# SwiftFormat\nif which swiftformat >/dev/null; then\n  echo \"Running SwiftFormat...\"\n  swiftformat \"$SOURCE_DIR\" || true\nelse\n  echo \"warning: SwiftFormat not installed\"\nfi\n\n# SwiftLint\nif which swiftlint >/dev/null; then\n  echo \"Running SwiftLint...\"\n  swiftlint lint \"$SOURCE_DIR\" --quiet || true\nelse\n  echo \"warning: SwiftLint not installed\"\nfi\n";
+			shellScript = "export PATH=\"/opt/homebrew/bin:$PATH\"\n\necho \"Project dir: $PROJECT_DIR\"\n\nSOURCE_DIR=\"$PROJECT_DIR\"\n\n# SwiftFormat\nif which swiftformat >/dev/null; then\n  echo \"Running SwiftFormat...\"\n  swiftformat \"$SOURCE_DIR\" || true\nelse\n  echo \"warning: SwiftFormat not installed\"\nfi\n\n# SwiftLint\nif which swiftlint >/dev/null; then\n  echo \"Running SwiftLint...\"\n  swiftlint lint \"$SOURCE_DIR\" --config \"$PROJECT_DIR/.swiftlint.yml\" --quiet || true\nelse\n  echo \"warning: SwiftLint not installed\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
