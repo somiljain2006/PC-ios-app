@@ -32,6 +32,21 @@ struct PCWidgetsEntryView: View {
         return Array(repeating: 0, count: 98 - stored.count) + stored
     }
 
+    private var monthLabels: [String] {
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.dateFormat = "MMM"
+
+        let now = Date()
+        return (-3 ... 0).compactMap { offset in
+            guard let date = calendar.date(byAdding: .month, value: offset, to: now) else {
+                return nil
+            }
+            return formatter.string(from: date).uppercased()
+        }
+    }
+
     var body: some View {
 
         ZStack(alignment: .topLeading) {
@@ -91,20 +106,12 @@ struct PCWidgetsEntryView: View {
                 }
                 
                 HStack {
-
-                    Text("JAN")
-
-                    Spacer()
-
-                    Text("FEB")
-
-                    Spacer()
-
-                    Text("MAR")
-
-                    Spacer()
-
-                    Text("APR")
+                    ForEach(Array(monthLabels.enumerated()), id: \.offset) { index, month in
+                        Text(month)
+                        if index < monthLabels.count - 1 {
+                            Spacer()
+                        }
+                    }
                 }
                 .font(
                     .system(
@@ -742,4 +749,3 @@ struct AtCoderWidget: Widget {
         .contentMarginsDisabled()
     }
 }
-

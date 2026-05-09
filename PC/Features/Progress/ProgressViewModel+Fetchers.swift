@@ -10,7 +10,6 @@ import SwiftUI
 import WidgetKit
 
 extension ProgressViewModel {
-
     func fetchGitHub() async {
         let username = UserDefaults.standard.string(forKey: "github_username") ?? ""
         let token = UserDefaults.standard.string(forKey: "github_token") ?? ""

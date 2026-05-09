@@ -42,7 +42,7 @@ final class ProgressViewModel: ObservableObject {
             UserDefaults.standard.set(data, forKey: Self.handlesKey)
         }
     }
-    
+
     func setGitHubUsername(_ username: String, refreshAfter: Bool = true) {
         handles.github = username; saveHandles()
         if refreshAfter { Task { await refresh() } }

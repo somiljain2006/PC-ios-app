@@ -17,6 +17,5 @@ struct PCWidgetsBundle: WidgetBundle {
         CodeChefWidget()
         AtCoderWidget()
         PCWidgetsControl()
-        PCWidgetsLiveActivity()
     }
 }
