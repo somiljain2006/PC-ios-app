@@ -42,8 +42,8 @@ struct CalendarCell: View {
                     if iconName == "codechef" || iconName == "atcoder" {
                         ZStack {
                             Circle()
-                                .fill(Color.white.opacity(0.7))
                                 .frame(width: 32, height: 32)
+                                .opacity(0.4)
                             Image(iconName)
                                 .resizable()
                                 .scaledToFit()

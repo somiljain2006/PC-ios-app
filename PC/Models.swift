@@ -371,3 +371,10 @@ struct ACProblem: Codable {
         URL(string: "https://atcoder.jp/contests/\(contestId)/tasks/\(id)")
     }
 }
+
+enum WidgetType: String {
+    case github
+    case leetcode
+    case codeforces
+    case atcoder
+}

@@ -7,14 +7,52 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		088939FC2FAE65BB00731E49 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 088939FB2FAE65BB00731E49 /* WidgetKit.framework */; };
+		088939FE2FAE65BB00731E49 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 088939FD2FAE65BB00731E49 /* SwiftUI.framework */; };
+		08893A0F2FAE65BD00731E49 /* PCWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 088939FA2FAE65BB00731E49 /* PCWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		08E9E17C2FA49189000DD759 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 08E9E17B2FA49189000DD759 /* Supabase */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		08893A0D2FAE65BD00731E49 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08BB08BB2F88EE4800F7C3CD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 088939F92FAE65BB00731E49;
+			remoteInfo = PCWidgetsExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		08893A142FAE65BD00731E49 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				08893A0F2FAE65BD00731E49 /* PCWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		088939FA2FAE65BB00731E49 /* PCWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PCWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		088939FB2FAE65BB00731E49 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		088939FD2FAE65BB00731E49 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		08893A162FAE661300731E49 /* PCWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PCWidgetsExtension.entitlements; sourceTree = "<group>"; };
 		08BB08C32F88EE4800F7C3CD /* PC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PC.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		08893A132FAE65BD00731E49 /* Exceptions for "PCWidgets" folder in "PCWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 088939F92FAE65BB00731E49 /* PCWidgetsExtension */;
+		};
 		08E9E1792FA490F8000DD759 /* Exceptions for "PC" folder in "PC" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -25,6 +63,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		088939FF2FAE65BB00731E49 /* PCWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				08893A132FAE65BD00731E49 /* Exceptions for "PCWidgets" folder in "PCWidgetsExtension" target */,
+			);
+			path = PCWidgets;
+			sourceTree = "<group>";
+		};
 		08BB08C52F88EE4800F7C3CD /* PC */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -36,6 +82,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		088939F72FAE65BB00731E49 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				088939FE2FAE65BB00731E49 /* SwiftUI.framework in Frameworks */,
+				088939FC2FAE65BB00731E49 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		08BB08C02F88EE4800F7C3CD /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -50,7 +105,9 @@
 		08BB08BA2F88EE4800F7C3CD = {
 			isa = PBXGroup;
 			children = (
+				08893A162FAE661300731E49 /* PCWidgetsExtension.entitlements */,
 				08BB08C52F88EE4800F7C3CD /* PC */,
+				088939FF2FAE65BB00731E49 /* PCWidgets */,
 				08E9E17A2FA4917C000DD759 /* Frameworks */,
 				08BB08C42F88EE4800F7C3CD /* Products */,
 			);
@@ -60,6 +117,7 @@
 			isa = PBXGroup;
 			children = (
 				08BB08C32F88EE4800F7C3CD /* PC.app */,
+				088939FA2FAE65BB00731E49 /* PCWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,6 +125,8 @@
 		08E9E17A2FA4917C000DD759 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				088939FB2FAE65BB00731E49 /* WidgetKit.framework */,
+				088939FD2FAE65BB00731E49 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -74,6 +134,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		088939F92FAE65BB00731E49 /* PCWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 08893A102FAE65BD00731E49 /* Build configuration list for PBXNativeTarget "PCWidgetsExtension" */;
+			buildPhases = (
+				088939F62FAE65BB00731E49 /* Sources */,
+				088939F72FAE65BB00731E49 /* Frameworks */,
+				088939F82FAE65BB00731E49 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				088939FF2FAE65BB00731E49 /* PCWidgets */,
+			);
+			name = PCWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = PCWidgetsExtension;
+			productReference = 088939FA2FAE65BB00731E49 /* PCWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		08BB08C22F88EE4800F7C3CD /* PC */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 08BB08CE2F88EE4900F7C3CD /* Build configuration list for PBXNativeTarget "PC" */;
@@ -82,10 +164,12 @@
 				08BB08C02F88EE4800F7C3CD /* Frameworks */,
 				08BB08C12F88EE4800F7C3CD /* Resources */,
 				086BEDFB2F8C1E1800E7772B /* ShellScript */,
+				08893A142FAE65BD00731E49 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				08893A0E2FAE65BD00731E49 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				08BB08C52F88EE4800F7C3CD /* PC */,
@@ -108,6 +192,9 @@
 				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
+					088939F92FAE65BB00731E49 = {
+						CreatedOnToolsVersion = 26.4;
+					};
 					08BB08C22F88EE4800F7C3CD = {
 						CreatedOnToolsVersion = 26.4;
 					};
@@ -131,11 +218,19 @@
 			projectRoot = "";
 			targets = (
 				08BB08C22F88EE4800F7C3CD /* PC */,
+				088939F92FAE65BB00731E49 /* PCWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		088939F82FAE65BB00731E49 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		08BB08C12F88EE4800F7C3CD /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -167,6 +262,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		088939F62FAE65BB00731E49 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		08BB08BF2F88EE4800F7C3CD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -176,7 +278,77 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		08893A0E2FAE65BD00731E49 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 088939F92FAE65BB00731E49 /* PCWidgetsExtension */;
+			targetProxy = 08893A0D2FAE65BD00731E49 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		08893A112FAE65BD00731E49 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PCWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = S4C57XC4ZW;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PCWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PCWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = challenge.PC.PCWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		08893A122FAE65BD00731E49 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PCWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = S4C57XC4ZW;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PCWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PCWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = challenge.PC.PCWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		08BB08CC2F88EE4900F7C3CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 08BB08C52F88EE4800F7C3CD /* PC */;
@@ -309,6 +481,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = PC/PC.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = S4C57XC4ZW;
@@ -346,6 +519,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = PC/PC.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = S4C57XC4ZW;
@@ -379,6 +553,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		08893A102FAE65BD00731E49 /* Build configuration list for PBXNativeTarget "PCWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				08893A112FAE65BD00731E49 /* Debug */,
+				08893A122FAE65BD00731E49 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		08BB08BE2F88EE4800F7C3CD /* Build configuration list for PBXProject "PC" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
