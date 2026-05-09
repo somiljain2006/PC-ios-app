@@ -56,7 +56,7 @@
 		08E9E1792FA490F8000DD759 /* Exceptions for "PC" folder in "PC" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				App/Info.plist,
 			);
 			target = 08BB08C22F88EE4800F7C3CD /* PC */;
 		};
