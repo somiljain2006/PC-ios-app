@@ -31,7 +31,7 @@ struct WidgetPlatformData: Codable {
     let githubMonthRight: String?
 
     let heatmapLevelsLarge: [Int]?
-    let githubLargeFourMonths: [String]?
+    let githubLargeMonths: [String]?
 
     init(
         title: String,
@@ -50,7 +50,7 @@ struct WidgetPlatformData: Codable {
         githubMonthRight: String? = nil,
 
         heatmapLevelsLarge: [Int]? = nil,
-        githubLargeFourMonths: [String]? = nil,
+        githubLargeMonths: [String]? = nil,
 
         easySolved: Int? = nil,
         mediumSolved: Int? = nil,
@@ -73,7 +73,7 @@ struct WidgetPlatformData: Codable {
         self.githubMonthRight = githubMonthRight
 
         self.heatmapLevelsLarge = heatmapLevelsLarge
-        self.githubLargeFourMonths = githubLargeFourMonths
+        self.githubLargeMonths = githubLargeMonths
 
         self.easySolved = easySolved
         self.mediumSolved = mediumSolved

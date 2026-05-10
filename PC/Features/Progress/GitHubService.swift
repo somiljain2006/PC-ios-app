@@ -53,14 +53,14 @@ final class GitHubService {
         let extendedDays = Array(allDays.suffix(GitHubStats.largeWidgetContributionDayCount))
         let largeWidgetHeatmapLevels = extendedDays.map(\.contributionCount).map(Self.heatmapLevelInt(forCount:))
         let largeDayWeeks = extendedDays.chunked(into: 7)
-        let largeWidgetFourMonths = Self.fourMonthLabels(forWeeks: largeDayWeeks)
+        let largeWidgetMonths = Self.monthLabels(forWeeks: largeDayWeeks)
 
         return GitHubStats(
             contributions: calendar.totalContributions,
             heatmap: heatmap,
             heatmapMonthAxis: heatmapMonthAxis,
             largeWidgetHeatmapLevels: largeWidgetHeatmapLevels,
-            largeWidgetFourMonths: largeWidgetFourMonths,
+            largeWidgetMonths: largeWidgetMonths,
             currentStreak: calculateCurrentStreak(counts: fullCounts),
             maxStreak: calculateMaxStreak(counts: fullCounts)
         )
@@ -157,10 +157,10 @@ final class GitHubService {
         )
     }
 
-    private static func fourMonthLabels(forWeeks dayWeeks: [[ContributionDay]]) -> [String] {
+    private static func monthLabels(forWeeks dayWeeks: [[ContributionDay]]) -> [String] {
         let weekCount = dayWeeks.count
         guard weekCount > 0 else {
-            return ["", "", "", ""]
+            return ["", "", "", "", ""]
         }
 
         let labelFormatter = DateFormatter()
@@ -180,13 +180,15 @@ final class GitHubService {
 
         let lastIndex = weekCount - 1
         let i0 = 0
-        let i1 = max(0, lastIndex / 3)
-        let i2 = max(0, lastIndex * 2 / 3)
+        let i1 = max(0, lastIndex / 4)
+        let i2 = max(0, lastIndex * 2 / 4)
+        let i3 = max(0, lastIndex * 3 / 4)
 
         return [
             monthUpper(weekIndex: i0, useFirstDayOfWeek: true),
             monthUpper(weekIndex: i1, useFirstDayOfWeek: true),
             monthUpper(weekIndex: i2, useFirstDayOfWeek: true),
+            monthUpper(weekIndex: i3, useFirstDayOfWeek: true),
             monthUpper(weekIndex: lastIndex, useFirstDayOfWeek: false),
         ]
     }

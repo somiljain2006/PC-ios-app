@@ -36,14 +36,14 @@ struct PCWidgetsEntryView: View {
         heatmapLevels.chunked(into: rowsPerWeek)
     }
 
-    private var fourMonthRibbon: [String] {
-        guard let months = githubData?.githubLargeFourMonths else {
-            return ["", "", "", ""]
+    private var monthRibbon: [String] {
+        guard let months = githubData?.githubLargeMonths else {
+            return ["", "", "", "", ""]
         }
-        if months.count >= 4 {
-            return Array(months.prefix(4))
+        if months.count >= 5 {
+            return Array(months.prefix(5))
         }
-        return months + Array(repeating: "", count: 4 - months.count)
+        return months + Array(repeating: "", count: 5 - months.count)
     }
 
     private var monthLeft: String {
@@ -103,10 +103,10 @@ struct PCWidgetsEntryView: View {
         }
     }
 
-    private func alignmentForFourMonth(_ index: Int) -> Alignment {
+    private func alignmentForMonthLabel(_ index: Int) -> Alignment {
         switch index {
         case 0: .leading
-        case 3: .trailing
+        case 4: .trailing
         default: .center
         }
     }
@@ -116,7 +116,7 @@ struct PCWidgetsEntryView: View {
         let columnCount = weekColumns.count
         let heatmapWidth = CGFloat(columnCount) * metrics.cell + CGFloat(Swift.max(0, columnCount - 1)) * metrics.weekGap
         let third = heatmapWidth / 3
-        let quarter = heatmapWidth / 4
+        let fifth = heatmapWidth / 5
 
         ZStack(alignment: .topLeading) {
             LinearGradient(
@@ -147,9 +147,9 @@ struct PCWidgetsEntryView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     if useExtendedLargeHeatmap {
                         HStack(spacing: 0) {
-                            ForEach(0 ..< 4, id: \.self) { index in
-                                Text(fourMonthRibbon[index])
-                                    .frame(width: quarter, alignment: alignmentForFourMonth(index))
+                            ForEach(0 ..< 5, id: \.self) { index in
+                                Text(monthRibbon[index])
+                                    .frame(width: fifth, alignment: alignmentForMonthLabel(index))
                             }
                         }
                         .frame(width: heatmapWidth)

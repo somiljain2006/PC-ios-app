@@ -45,7 +45,7 @@ extension ProgressViewModel {
             githubMonthCenter: stats.heatmapMonthAxis.center,
             githubMonthRight: stats.heatmapMonthAxis.right,
             heatmapLevelsLarge: stats.largeWidgetHeatmapLevels,
-            githubLargeFourMonths: stats.largeWidgetFourMonths
+            githubLargeMonths: stats.largeWidgetMonths
         )
         guard let encoded = try? JSONEncoder().encode(payload) else { return }
         shared?.set(encoded, forKey: "github_widget")
