@@ -11,6 +11,7 @@ import SwiftUI
 import UIKit
 
 struct HomeView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab: String = "home"
     @StateObject private var network = NetworkMonitor()
     @StateObject private var profileService = ProfileService()
@@ -83,6 +84,10 @@ struct HomeView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: showProfileSheet)
+        .onChange(of: scenePhase) { phase in
+            guard phase == .active else { return }
+            Task { await ProgressViewModel.refreshGitHubWidgetAfterForeground() }
+        }
     }
 
     private var homeContent: some View {

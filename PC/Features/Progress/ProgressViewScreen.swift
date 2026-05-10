@@ -29,7 +29,7 @@ struct ProgressViewScreen: View {
         .background(Color.background.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .applyNavigationBarTheme()
-        .task(id: vm.allHandlesConfigured) {
+        .task {
             await vm.refresh()
         }
     }
@@ -66,7 +66,6 @@ struct GitHubCard: View {
     let stats: GitHubStats
 
     private let rows = 7
-    private let columns = 10
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -98,21 +97,41 @@ struct GitHubCard: View {
 
     private var githubHeatmap: some View {
         let chunks = stats.heatmap.chunked(into: rows)
+        let cell: CGFloat = 12
+        let weekGap: CGFloat = 4
+        let columnCount = chunks.count
+        let heatmapWidth = CGFloat(columnCount) * cell + CGFloat(Swift.max(0, columnCount - 1)) * weekGap
+        let third = heatmapWidth / 3
+        let axis = stats.heatmapMonthAxis
 
-        return HStack(alignment: .top, spacing: 4) {
-            ForEach(Array(chunks.enumerated()), id: \.offset) { _, week in
-                VStack(spacing: 4) {
-                    ForEach(Array(week.enumerated()), id: \.offset) { _, level in
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(level.color)
-                            .frame(width: 12, height: 12)
-                    }
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 0) {
+                Text(axis.left)
+                    .frame(width: third, alignment: .leading)
+                Text(axis.center)
+                    .frame(width: third, alignment: .center)
+                Text(axis.right)
+                    .frame(width: third, alignment: .trailing)
+            }
+            .frame(width: heatmapWidth)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundColor(.white)
 
-                    if week.count < rows {
-                        ForEach(0 ..< (rows - week.count), id: \.self) { _ in
+            HStack(alignment: .top, spacing: weekGap) {
+                ForEach(Array(chunks.enumerated()), id: \.offset) { _, week in
+                    VStack(alignment: .leading, spacing: weekGap) {
+                        ForEach(Array(week.enumerated()), id: \.offset) { _, level in
                             RoundedRectangle(cornerRadius: 3)
-                                .fill(Color.clear)
-                                .frame(width: 12, height: 12)
+                                .fill(level.color)
+                                .frame(width: cell, height: cell)
+                        }
+
+                        if week.count < rows {
+                            ForEach(0 ..< (rows - week.count), id: \.self) { _ in
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.clear)
+                                    .frame(width: cell, height: cell)
+                            }
                         }
                     }
                 }

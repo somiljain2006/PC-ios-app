@@ -41,17 +41,28 @@ final class GitHubService {
 
         let calendar = decoded.data.user.contributionsCollection.contributionCalendar
 
-        let counts = calendar.weeks
-            .flatMap(\.contributionDays)
-            .map(\.contributionCount)
+        let allDays = calendar.weeks.flatMap(\.contributionDays)
+        let fullCounts = allDays.map(\.contributionCount)
+        let days = Array(allDays.suffix(GitHubStats.mainHeatmapContributionDayCount))
+        let counts = days.map(\.contributionCount)
 
-        let heatmap = Array(counts.suffix(105)).map(\.githubHeatLevel)
+        let heatmap = counts.map(\.githubHeatLevel)
+        let dayWeeks = days.chunked(into: 7)
+        let heatmapMonthAxis = Self.monthAxis(forWeeks: dayWeeks)
+
+        let extendedDays = Array(allDays.suffix(GitHubStats.largeWidgetContributionDayCount))
+        let largeWidgetHeatmapLevels = extendedDays.map(\.contributionCount).map(Self.heatmapLevelInt(forCount:))
+        let largeDayWeeks = extendedDays.chunked(into: 7)
+        let largeWidgetFourMonths = Self.fourMonthLabels(forWeeks: largeDayWeeks)
 
         return GitHubStats(
             contributions: calendar.totalContributions,
             heatmap: heatmap,
-            currentStreak: calculateCurrentStreak(counts: counts),
-            maxStreak: calculateMaxStreak(counts: counts)
+            heatmapMonthAxis: heatmapMonthAxis,
+            largeWidgetHeatmapLevels: largeWidgetHeatmapLevels,
+            largeWidgetFourMonths: largeWidgetFourMonths,
+            currentStreak: calculateCurrentStreak(counts: fullCounts),
+            maxStreak: calculateMaxStreak(counts: fullCounts)
         )
     }
 
@@ -93,6 +104,93 @@ final class GitHubService {
         return request
     }
 
+    private static func heatmapLevelInt(forCount count: Int) -> Int {
+        switch count {
+        case 0: 0
+        case 1 ... 3: 1
+        case 4 ... 7: 2
+        default: 3
+        }
+    }
+
+    private static let contributionDayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
+    private static func monthAxis(forWeeks dayWeeks: [[ContributionDay]]) -> GitHubHeatmapMonthAxis {
+        guard !dayWeeks.isEmpty,
+              let firstDay = dayWeeks[0].first,
+              let startDate = contributionDayFormatter.date(from: firstDay.date)
+        else {
+            return .empty
+        }
+
+        let labelFormatter = DateFormatter()
+        labelFormatter.locale = Locale.autoupdatingCurrent
+        labelFormatter.setLocalizedDateFormatFromTemplate("MMM")
+
+        let weekCount = dayWeeks.count
+        let middleIndex = min(max(weekCount / 2, 0), weekCount - 1)
+        let middleDate: Date = {
+            guard let day = dayWeeks[middleIndex].first,
+                  let date = Self.contributionDayFormatter.date(from: day.date)
+            else { return startDate }
+            return date
+        }()
+
+        let endDate: Date = {
+            guard let lastDay = dayWeeks[weekCount - 1].last,
+                  let date = Self.contributionDayFormatter.date(from: lastDay.date)
+            else { return startDate }
+            return date
+        }()
+
+        return GitHubHeatmapMonthAxis(
+            left: labelFormatter.string(from: startDate).uppercased(),
+            center: labelFormatter.string(from: middleDate).uppercased(),
+            right: labelFormatter.string(from: endDate).uppercased()
+        )
+    }
+
+    private static func fourMonthLabels(forWeeks dayWeeks: [[ContributionDay]]) -> [String] {
+        let weekCount = dayWeeks.count
+        guard weekCount > 0 else {
+            return ["", "", "", ""]
+        }
+
+        let labelFormatter = DateFormatter()
+        labelFormatter.locale = Locale.autoupdatingCurrent
+        labelFormatter.setLocalizedDateFormatFromTemplate("MMM")
+
+        func monthUpper(weekIndex: Int, useFirstDayOfWeek: Bool) -> String {
+            guard weekIndex >= 0, weekIndex < weekCount else { return "" }
+            let day: ContributionDay? = useFirstDayOfWeek
+                ? dayWeeks[weekIndex].first
+                : dayWeeks[weekIndex].last
+            guard let day,
+                  let date = Self.contributionDayFormatter.date(from: day.date)
+            else { return "" }
+            return labelFormatter.string(from: date).uppercased()
+        }
+
+        let lastIndex = weekCount - 1
+        let i0 = 0
+        let i1 = max(0, lastIndex / 3)
+        let i2 = max(0, lastIndex * 2 / 3)
+
+        return [
+            monthUpper(weekIndex: i0, useFirstDayOfWeek: true),
+            monthUpper(weekIndex: i1, useFirstDayOfWeek: true),
+            monthUpper(weekIndex: i2, useFirstDayOfWeek: true),
+            monthUpper(weekIndex: lastIndex, useFirstDayOfWeek: false),
+        ]
+    }
+
     private func calculateCurrentStreak(counts: [Int]) -> Int {
         var currentStreak = 0
         for count in counts.reversed() {
@@ -117,6 +215,14 @@ final class GitHubService {
             }
         }
         return maxStreak
+    }
+}
+
+private extension [ContributionDay] {
+    func chunked(into size: Int) -> [[ContributionDay]] {
+        stride(from: 0, to: count, by: size).map {
+            Array(self[$0 ..< Swift.min($0 + size, count)])
+        }
     }
 }
 

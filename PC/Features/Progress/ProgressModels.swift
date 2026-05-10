@@ -8,9 +8,25 @@
 import Foundation
 import SwiftUI
 
+struct GitHubHeatmapMonthAxis: Equatable {
+    let left: String
+    let center: String
+    let right: String
+
+    static let empty = GitHubHeatmapMonthAxis(left: "", center: "", right: "")
+}
+
 struct GitHubStats {
+    static let mainHeatmapContributionDayCount = 105
+    static let largeWidgetContributionDayCount = 154
+
     let contributions: Int
     let heatmap: [HeatLevel]
+
+    let heatmapMonthAxis: GitHubHeatmapMonthAxis
+
+    let largeWidgetHeatmapLevels: [Int]
+    let largeWidgetFourMonths: [String]
 
     let currentStreak: Int
     let maxStreak: Int
@@ -36,6 +52,9 @@ struct GitHubStats {
         GitHubStats(
             contributions: 0,
             heatmap: Array(repeating: .none, count: count),
+            heatmapMonthAxis: .empty,
+            largeWidgetHeatmapLevels: [],
+            largeWidgetFourMonths: ["", "", "", ""],
             currentStreak: 0,
             maxStreak: 0
         )

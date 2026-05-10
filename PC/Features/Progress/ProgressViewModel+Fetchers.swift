@@ -10,6 +10,49 @@ import SwiftUI
 import WidgetKit
 
 extension ProgressViewModel {
+    static func refreshGitHubWidgetAfterForeground() async {
+        let username = UserDefaults.standard.string(forKey: "github_username") ?? ""
+        let token = UserDefaults.standard.string(forKey: "github_token") ?? ""
+        guard !username.isEmpty, !token.isEmpty else { return }
+
+        do {
+            let stats = try await GitHubService.shared.fetchContributionData(username: username, token: token)
+            persistGitHubWidgetData(stats: stats)
+        } catch is CancellationError {
+        } catch {
+            print("GitHub widget foreground refresh failed:", error)
+        }
+    }
+
+    private static func persistGitHubWidgetData(stats: GitHubStats) {
+        let shared = UserDefaults(suiteName: "group.com.pc.app")
+        let payload = WidgetPlatformData(
+            title: "GitHub",
+            primaryValue: "\(stats.contributions)",
+            secondaryValue: "Contributions",
+            accent: "green",
+            currentStreak: stats.currentStreak,
+            maxStreak: stats.maxStreak,
+            heatmapLevels: stats.heatmap.map { level in
+                switch level {
+                case .none: 0
+                case .low: 1
+                case .medium: 2
+                case .high: 3
+                }
+            },
+            githubMonthLeft: stats.heatmapMonthAxis.left,
+            githubMonthCenter: stats.heatmapMonthAxis.center,
+            githubMonthRight: stats.heatmapMonthAxis.right,
+            heatmapLevelsLarge: stats.largeWidgetHeatmapLevels,
+            githubLargeFourMonths: stats.largeWidgetFourMonths
+        )
+        guard let encoded = try? JSONEncoder().encode(payload) else { return }
+        shared?.set(encoded, forKey: "github_widget")
+        WidgetCenter.shared.reloadTimelines(ofKind: "GitHubActivityWidget")
+        WidgetCenter.shared.reloadTimelines(ofKind: "PCWidgets")
+    }
+
     func fetchGitHub() async {
         let username = UserDefaults.standard.string(forKey: "github_username") ?? ""
         let token = UserDefaults.standard.string(forKey: "github_token") ?? ""
@@ -17,23 +60,9 @@ extension ProgressViewModel {
         guard !username.isEmpty, !token.isEmpty else { return }
 
         do {
-            try await updateGitHub(GitHubService.shared.fetchContributionData(username: username, token: token))
-            saveWidgetData(
-                key: "github_widget",
-                data: WidgetPlatformData(
-                    title: "GitHub", primaryValue: "\(github.contributions)", secondaryValue: "Contributions",
-                    accent: "green", currentStreak: github.currentStreak, maxStreak: github.maxStreak,
-                    heatmapLevels: github.heatmap.map { level in
-                        switch level {
-                        case .none: 0
-                        case .low: 1
-                        case .medium: 2
-                        case .high: 3
-                        }
-                    }
-                )
-            )
-            WidgetCenter.shared.reloadAllTimelines()
+            let stats = try await GitHubService.shared.fetchContributionData(username: username, token: token)
+            updateGitHub(stats)
+            Self.persistGitHubWidgetData(stats: stats)
         } catch is CancellationError { } catch { print("GitHub fetch failed:", error) }
     }
 

@@ -9,146 +9,194 @@ import SwiftUI
 import WidgetKit
 
 struct PCWidgetsEntryView: View {
-    private let columns = Array(
-        repeating: GridItem(.fixed(11), spacing: 4),
-        count: 14
-    )
+    @Environment(\.widgetFamily) private var widgetFamily
 
-    private let levels: [Color] = [
-        Color(red: 0.20, green: 0.17, blue: 0.25),
-        Color(red: 0.18, green: 0.45, blue: 0.22),
-        Color(red: 0.24, green: 0.70, blue: 0.28),
-        Color(red: 0.35, green: 0.95, blue: 0.38),
-    ]
+    private let standardContributionDayCount = 105
+    private let rowsPerWeek = 7
 
-    private var heatmap: [Int] {
-        let stored = githubData?.heatmapLevels ?? []
-
-        if stored.count >= 98 {
-            return Array(stored.suffix(98))
-        }
-
-        return Array(repeating: 0, count: 98 - stored.count) + stored
+    private var useExtendedLargeHeatmap: Bool {
+        !(githubData?.heatmapLevelsLarge ?? []).isEmpty
     }
 
-    private var monthLabels: [String] {
-        let calendar = Calendar.current
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.dateFormat = "MMM"
+    private var activeContributionDayCount: Int {
+        if useExtendedLargeHeatmap, let count = githubData?.heatmapLevelsLarge?.count, count > 0 {
+            return count
+        }
+        return standardContributionDayCount
+    }
 
-        let now = Date()
-        return (-3 ... 0).compactMap { offset in
-            guard let date = calendar.date(byAdding: .month, value: offset, to: now) else {
-                return nil
-            }
-            return formatter.string(from: date).uppercased()
+    private var heatmapLevels: [Int] {
+        let raw: [Int]? = useExtendedLargeHeatmap
+            ? githubData?.heatmapLevelsLarge
+            : githubData?.heatmapLevels
+        return normalizedHeatmapLevels(raw, length: activeContributionDayCount)
+    }
+
+    private var weekColumns: [[Int]] {
+        heatmapLevels.chunked(into: rowsPerWeek)
+    }
+
+    private var fourMonthRibbon: [String] {
+        guard let months = githubData?.githubLargeFourMonths else {
+            return ["", "", "", ""]
+        }
+        if months.count >= 4 {
+            return Array(months.prefix(4))
+        }
+        return months + Array(repeating: "", count: 4 - months.count)
+    }
+
+    private var monthLeft: String {
+        githubData?.githubMonthLeft ?? ""
+    }
+
+    private var monthCenter: String {
+        githubData?.githubMonthCenter ?? ""
+    }
+
+    private var monthRight: String {
+        githubData?.githubMonthRight ?? ""
+    }
+
+    private struct LayoutMetrics {
+        let cell: CGFloat
+        let weekGap: CGFloat
+        let padLeading: CGFloat
+        let padTrailing: CGFloat
+        let padV: CGFloat
+        let titleFont: CGFloat
+        let iconFont: CGFloat
+        let headerSpacing: CGFloat
+    }
+
+    private var layout: LayoutMetrics {
+        LayoutMetrics(
+            cell: 8,
+            weekGap: 2,
+            padLeading: 14,
+            padTrailing: 14,
+            padV: 10,
+            titleFont: 14,
+            iconFont: 14,
+            headerSpacing: 8
+        )
+    }
+
+    private func normalizedHeatmapLevels(_ stored: [Int]?, length: Int) -> [Int] {
+        let stored = stored ?? []
+        if stored.count >= length {
+            return Array(stored.suffix(length))
+        }
+        return Array(repeating: 0, count: length - stored.count) + stored
+    }
+
+    private func cellFill(for level: Int) -> Color {
+        switch level {
+        case 0:
+            Color(red: 59 / 255, green: 49 / 255, blue: 66 / 255)
+        case 1:
+            Color.green.opacity(0.3)
+        case 2:
+            Color.green.opacity(0.6)
+        default:
+            Color.green
+        }
+    }
+
+    private func alignmentForFourMonth(_ index: Int) -> Alignment {
+        switch index {
+        case 0: .leading
+        case 3: .trailing
+        default: .center
         }
     }
 
     var body: some View {
+        let metrics = layout
+        let columnCount = weekColumns.count
+        let heatmapWidth = CGFloat(columnCount) * metrics.cell + CGFloat(Swift.max(0, columnCount - 1)) * metrics.weekGap
+        let third = heatmapWidth / 3
+        let quarter = heatmapWidth / 4
+
         ZStack(alignment: .topLeading) {
             LinearGradient(
                 colors: [
-                    Color(
-                        red: 0.12,
-                        green: 0.05,
-                        blue: 0.16
-                    ),
-
-                    Color(
-                        red: 0.09,
-                        green: 0.04,
-                        blue: 0.13
-                    ),
+                    Color(red: 0.12, green: 0.05, blue: 0.16),
+                    Color(red: 0.09, green: 0.04, blue: 0.13),
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
-            VStack(
-                alignment: .leading,
-                spacing: 10
-            ) {
-                VStack(
-                    alignment: .leading,
-                    spacing: 2
-                ) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "chevron.left.forwardslash.chevron.right")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(.green)
-                            .frame(width: 16, height: 16)
+            VStack(alignment: .leading, spacing: metrics.headerSpacing) {
+                HStack(spacing: 8) {
+                    Image(systemName: "chevron.left.forwardslash.chevron.right")
+                        .font(.system(size: metrics.iconFont, weight: .bold))
+                        .foregroundColor(.green)
+                        .frame(width: metrics.iconFont + 1, height: metrics.iconFont + 1)
 
-                        Text("GitHub Activity")
-                            .font(
-                                .system(
-                                    size: 15,
-                                    weight: .black
-                                )
-                            )
-                            .foregroundColor(.white)
-                    }
-
-                    Text(
-                        "\(githubData?.primaryValue ?? "0") Contributions this year"
-                    )
-                    .font(.system(size: 10))
-                    .foregroundColor(
-                        .white.opacity(0.75)
-                    )
+                    Text("GitHub Activity")
+                        .font(.system(size: metrics.titleFont, weight: .black))
+                        .foregroundColor(.white)
                 }
 
-                HStack {
-                    ForEach(Array(monthLabels.enumerated()), id: \.offset) { index, month in
-                        Text(month)
-                        if index < monthLabels.count - 1 {
-                            Spacer()
+                Text("\(githubData?.primaryValue ?? "0") Contributions this year")
+                    .font(.system(size: 9))
+                    .foregroundColor(.white.opacity(0.75))
+
+                VStack(alignment: .leading, spacing: 6) {
+                    if useExtendedLargeHeatmap {
+                        HStack(spacing: 0) {
+                            ForEach(0 ..< 4, id: \.self) { index in
+                                Text(fourMonthRibbon[index])
+                                    .frame(width: quarter, alignment: alignmentForFourMonth(index))
+                            }
+                        }
+                        .frame(width: heatmapWidth)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                    } else {
+                        HStack(spacing: 0) {
+                            Text(monthLeft)
+                                .frame(width: third, alignment: .leading)
+                            Text(monthCenter)
+                                .frame(width: third, alignment: .center)
+                            Text(monthRight)
+                                .frame(width: third, alignment: .trailing)
+                        }
+                        .frame(width: heatmapWidth)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                    }
+
+                    HStack(alignment: .top, spacing: metrics.weekGap) {
+                        ForEach(Array(weekColumns.enumerated()), id: \.offset) { _, week in
+                            VStack(alignment: .leading, spacing: metrics.weekGap) {
+                                ForEach(Array(week.enumerated()), id: \.offset) { _, level in
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(cellFill(for: level))
+                                        .frame(width: metrics.cell, height: metrics.cell)
+                                }
+                                if week.count < rowsPerWeek {
+                                    ForEach(0 ..< (rowsPerWeek - week.count), id: \.self) { _ in
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(Color.clear)
+                                            .frame(width: metrics.cell, height: metrics.cell)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-                .font(
-                    .system(
-                        size: 10,
-                        weight: .bold
-                    )
-                )
-                .foregroundColor(
-                    .white.opacity(0.65)
-                )
 
-                LazyVGrid(
-                    columns: columns,
-                    alignment: .leading,
-                    spacing: 2
-                ) {
-                    ForEach(
-                        heatmap.indices,
-                        id: \.self
-                    ) { index in
-                        RoundedRectangle(
-                            cornerRadius: 3
-                        )
-                        .fill(
-                            levels[
-                                heatmap[index]
-                            ]
-                        )
-                        .frame(
-                            width: 10,
-                            height: 10
-                        )
-                    }
-                }
-                Spacer(minLength: 4)
+                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 28)
-            .padding(.vertical, 10)
-            .padding(.top, 16)
+            .padding(.leading, metrics.padLeading)
+            .padding(.trailing, metrics.padTrailing)
+            .padding(.vertical, metrics.padV)
+            .padding(.top, widgetFamily == .systemLarge ? 4 : 2)
         }
-        .containerBackground(
-            for: .widget
-        ) {
+        .containerBackground(for: .widget) {
             Color.clear
         }
     }
@@ -188,13 +236,14 @@ struct PCWidgetsTimelineProvider: TimelineProvider {
 
     func getTimeline(in _: Context, completion: @escaping (Timeline<PCWidgetsEntry>) -> Void) {
         let entry = PCWidgetsEntry(date: Date())
-        let timeline = Timeline(entries: [entry], policy: .atEnd)
+        let next = Calendar.current.date(byAdding: .hour, value: 4, to: Date()) ?? Date().addingTimeInterval(14400)
+        let timeline = Timeline(entries: [entry], policy: .after(next))
         completion(timeline)
     }
 }
 
 struct PCWidgets: Widget {
-    private let kind = "PCWidgets"
+    private let kind = "GitHubActivityWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: PCWidgetsTimelineProvider()) { _ in
@@ -206,5 +255,13 @@ struct PCWidgets: Widget {
             .systemMedium,
         ])
         .contentMarginsDisabled()
+    }
+}
+
+private extension [Int] {
+    func chunked(into size: Int) -> [[Element]] {
+        stride(from: 0, to: count, by: size).map {
+            Array(self[$0 ..< Swift.min($0 + size, count)])
+        }
     }
 }
