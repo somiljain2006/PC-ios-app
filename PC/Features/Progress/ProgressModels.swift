@@ -18,7 +18,7 @@ struct GitHubHeatmapMonthAxis: Equatable {
 
 struct GitHubStats {
     static let mainHeatmapContributionDayCount = 105
-    static let largeWidgetContributionDayCount = 189
+    static let largeWidgetContributionDayCount = 210
 
     let contributions: Int
     let heatmap: [HeatLevel]
@@ -54,7 +54,7 @@ struct GitHubStats {
             heatmap: Array(repeating: .none, count: count),
             heatmapMonthAxis: .empty,
             largeWidgetHeatmapLevels: [],
-            largeWidgetMonths: ["", "", "", "", ""],
+            largeWidgetMonths: ["", "", "", "", "", ""],
             currentStreak: 0,
             maxStreak: 0
         )

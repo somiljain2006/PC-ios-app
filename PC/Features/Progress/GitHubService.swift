@@ -160,7 +160,7 @@ final class GitHubService {
     private static func monthLabels(forWeeks dayWeeks: [[ContributionDay]]) -> [String] {
         let weekCount = dayWeeks.count
         guard weekCount > 0 else {
-            return ["", "", "", "", ""]
+            return ["", "", "", "", "", ""]
         }
 
         let labelFormatter = DateFormatter()
@@ -180,15 +180,17 @@ final class GitHubService {
 
         let lastIndex = weekCount - 1
         let i0 = 0
-        let i1 = max(0, lastIndex / 4)
-        let i2 = max(0, lastIndex * 2 / 4)
-        let i3 = max(0, lastIndex * 3 / 4)
+        let i1 = max(0, lastIndex / 5)
+        let i2 = max(0, lastIndex * 2 / 5)
+        let i3 = max(0, lastIndex * 3 / 5)
+        let i4 = max(0, lastIndex * 4 / 5)
 
         return [
             monthUpper(weekIndex: i0, useFirstDayOfWeek: true),
             monthUpper(weekIndex: i1, useFirstDayOfWeek: true),
             monthUpper(weekIndex: i2, useFirstDayOfWeek: true),
             monthUpper(weekIndex: i3, useFirstDayOfWeek: true),
+            monthUpper(weekIndex: i4, useFirstDayOfWeek: true),
             monthUpper(weekIndex: lastIndex, useFirstDayOfWeek: false),
         ]
     }

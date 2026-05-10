@@ -38,12 +38,12 @@ struct PCWidgetsEntryView: View {
 
     private var monthRibbon: [String] {
         guard let months = githubData?.githubLargeMonths else {
-            return ["", "", "", "", ""]
+            return ["", "", "", "", "", ""]
         }
-        if months.count >= 5 {
-            return Array(months.prefix(5))
+        if months.count >= 6 {
+            return Array(months.prefix(6))
         }
-        return months + Array(repeating: "", count: 5 - months.count)
+        return months + Array(repeating: "", count: 6 - months.count)
     }
 
     private var monthLeft: String {
@@ -106,7 +106,7 @@ struct PCWidgetsEntryView: View {
     private func alignmentForMonthLabel(_ index: Int) -> Alignment {
         switch index {
         case 0: .leading
-        case 4: .trailing
+        case 5: .trailing
         default: .center
         }
     }
@@ -116,7 +116,7 @@ struct PCWidgetsEntryView: View {
         let columnCount = weekColumns.count
         let heatmapWidth = CGFloat(columnCount) * metrics.cell + CGFloat(Swift.max(0, columnCount - 1)) * metrics.weekGap
         let third = heatmapWidth / 3
-        let fifth = heatmapWidth / 5
+        let sixth = heatmapWidth / 6
 
         ZStack(alignment: .topLeading) {
             LinearGradient(
@@ -147,9 +147,9 @@ struct PCWidgetsEntryView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     if useExtendedLargeHeatmap {
                         HStack(spacing: 0) {
-                            ForEach(0 ..< 5, id: \.self) { index in
+                            ForEach(0 ..< 6, id: \.self) { index in
                                 Text(monthRibbon[index])
-                                    .frame(width: fifth, alignment: alignmentForMonthLabel(index))
+                                    .frame(width: sixth, alignment: alignmentForMonthLabel(index))
                             }
                         }
                         .frame(width: heatmapWidth)
