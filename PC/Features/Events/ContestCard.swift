@@ -41,7 +41,7 @@ struct ContestSidebarCard: View {
                 .lineLimit(2)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text(contest.formattedDate + " UTC")
+            Text(contest.formattedDate)
                 .font(.caption)
                 .foregroundColor(.onSurfaceVariant)
         }

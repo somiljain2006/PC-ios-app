@@ -24,11 +24,21 @@ struct AppContest: Hashable, Identifiable {
     let startTime: Date
 
     var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        formatter.timeZone = TimeZone(abbreviation: "UTC")
-        return formatter.string(from: startTime)
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = .autoupdatingCurrent
+        dateFormatter.timeZone = .autoupdatingCurrent
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .short
+
+        let tzFormatter = DateFormatter()
+        tzFormatter.locale = .autoupdatingCurrent
+        tzFormatter.timeZone = .autoupdatingCurrent
+        tzFormatter.dateFormat = "zzz"
+
+        let dateString = dateFormatter.string(from: startTime)
+        let tzString = tzFormatter.string(from: startTime)
+
+        return "\(dateString) \(tzString)"
     }
 
     var shortTitle: String {
