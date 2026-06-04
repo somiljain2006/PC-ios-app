@@ -5,6 +5,7 @@
 //  Created by somil jain on 08/05/26.
 //
 
+#if canImport(FoundationModels)
 import FoundationModels
 import SwiftUI
 
@@ -248,6 +249,8 @@ struct AskPCChatView: View {
         }
     }
 }
+
+#endif
 
 private struct MessageBubble: View {
     let message: PCMessage
