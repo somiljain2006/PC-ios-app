@@ -5,9 +5,10 @@
 //  Created by somil jain on 08/05/26.
 //
 
+import SwiftUI
+
 #if canImport(FoundationModels)
     import FoundationModels
-    import SwiftUI
 
     struct PCMessage: Identifiable {
         let id = UUID()
@@ -324,6 +325,29 @@
     @available(iOS 26.0, *)
     #Preview {
         AskPCChatView(selectedTab: .constant("askpc"))
+    }
+
+#else
+    struct AskPCChatView: View {
+        @Binding var selectedTab: String
+
+        var body: some View {
+            VStack(spacing: 16) {
+                Image(systemName: "sparkles")
+                    .font(.largeTitle)
+                    .foregroundColor(.gray)
+                Text("Apple Intelligence is not supported in this environment.")
+                    .multilineTextAlignment(.center)
+                    .padding()
+
+                Button("Go Back") {
+                    selectedTab = "home"
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .navigationTitle("Ask PC")
+            .navigationBarTitleDisplayMode(.inline)
+        }
     }
 
 #endif
