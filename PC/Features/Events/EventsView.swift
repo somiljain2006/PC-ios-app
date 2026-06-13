@@ -72,9 +72,21 @@ struct EventsView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 16) {
-                    Text(selectedDateTitle)
-                        .font(.headline)
-                        .foregroundColor(.onSurface)
+                    HStack {
+                        Text(selectedDateTitle)
+                            .font(.headline)
+                            .foregroundColor(.onSurface)
+
+                        if selectedDate == nil, !contestService.allUpcomingContests.isEmpty {
+                            Spacer()
+                            Button {
+                                toggleAllUpcomingNotifications()
+                            } label: {
+                                Image(systemName: isAllUpcomingNotified ? "bell.fill" : "bell")
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                    }
 
                     if contestService.isLoading {
                         ProgressView("Fetching contests...")
@@ -279,6 +291,55 @@ struct EventsView: View {
                 showPermissionAlert = true
             }
         }
+    }
+
+    private var isAllUpcomingNotified: Bool {
+        let upcomingIds = contestService.allUpcomingContests.map(\.id)
+        guard !upcomingIds.isEmpty else { return false }
+        return upcomingIds.allSatisfy { notifiedContests.contains($0) }
+    }
+
+    private func toggleAllUpcomingNotifications() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+
+        NotificationManager.shared.checkPermission { status in
+            switch status {
+            case .authorized, .provisional:
+                handleToggleAll()
+
+            case .notDetermined:
+                NotificationManager.shared.requestPermission { granted in
+                    if granted {
+                        handleToggleAll()
+                    } else {
+                        showPermissionAlert = true
+                    }
+                }
+
+            default:
+                showPermissionAlert = true
+            }
+        }
+    }
+
+    private func handleToggleAll() {
+        let upcoming = contestService.allUpcomingContests
+        let allNotified = isAllUpcomingNotified
+
+        for contest in upcoming {
+            if allNotified {
+                if notifiedContests.contains(contest.id) {
+                    notifiedContests.remove(contest.id)
+                    NotificationManager.shared.cancelNotification(for: contest)
+                }
+            } else {
+                if !notifiedContests.contains(contest.id) {
+                    notifiedContests.insert(contest.id)
+                    NotificationManager.shared.scheduleNotification(for: contest)
+                }
+            }
+        }
+        UserDefaults.standard.set(Array(notifiedContests), forKey: storageKey)
     }
 
     private func toggleNotification(_ contest: AppContest) {
