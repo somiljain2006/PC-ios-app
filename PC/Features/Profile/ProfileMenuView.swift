@@ -19,113 +19,141 @@ struct ProfileMenuView: View {
     @State private var showDeleteConfirm = false
     @State private var deleteText = ""
 
+    @State private var showFullScreenImage = false
+    @Namespace private var animation
+
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                HStack {
-                    Spacer()
-                    Button {
-                        onClose()
+        ZStack {
+            NavigationView {
+                VStack(spacing: 20) {
+                    HStack {
+                        Spacer()
+                        Button {
+                            onClose()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .padding(10)
+                                .background(Color.surfaceContainerHigh)
+                                .clipShape(Circle())
+                        }
+                    }
+
+                    VStack(spacing: 10) {
+                        if let cachedImage = profileService.cachedProfileImage {
+                            Image(uiImage: cachedImage)
+                                .resizable()
+                                .scaledToFill()
+                        } else if let urlString = profileService.profileImageURL,
+                                  let url = URL(string: urlString)
+                        {
+                            AsyncImage(url: url) { image in
+                                image.resizable().scaledToFill()
+                            } placeholder: {
+                                ProgressView()
+                            }
+                        } else {
+                            Image(systemName: "person.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .padding(20)
+                                .foregroundColor(.white)
+                                .frame(width: 90, height: 90)
+                                .background(Color.primaryContainer)
+                        }
+                    }
+                    .frame(width: 90, height: 90)
+                    .clipShape(Circle())
+                    .matchedGeometryEffect(id: profileService.profileImageURL ?? "defaultProfile", in: animation)
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                            showFullScreenImage = true
+                        }
+                    }
+
+                    Button("Edit Profile Picture") {
+                        showImagePicker = true
+                    }
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.primaryContainer)
+
+                    Divider()
+
+                    NavigationLink {
+                        ProgressViewScreen()
                     } label: {
-                        Image(systemName: "xmark")
-                            .padding(10)
-                            .background(Color.surfaceContainerHigh)
-                            .clipShape(Circle())
+                        row(icon: "chart.bar.fill", title: "Progressboard")
                     }
-                }
 
-                VStack(spacing: 10) {
-                    if let urlString = profileService.profileImageURL,
-                       let url = URL(string: urlString)
-                    {
-                        AsyncImage(url: url) { image in
-                            image.resizable().scaledToFill()
-                        } placeholder: {
-                            ProgressView()
+                    Button {
+                        showLogoutConfirm = true
+                    } label: {
+                        row(icon: "arrow.backward.circle.fill", title: "Logout")
+                    }
+                    .alert("Logout?", isPresented: $showLogoutConfirm) {
+                        Button("Logout", role: .destructive) {
+                            Task {
+                                await profileService.logout()
+                                dismiss()
+                            }
                         }
-                    } else {
-                        Image(systemName: "person.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .padding(20)
-                            .foregroundColor(.white)
-                            .frame(width: 90, height: 90)
-                            .background(Color.primaryContainer)
-                    }
-                }
-                .frame(width: 90, height: 90)
-                .clipShape(Circle())
-
-                Button("Edit Profile Picture") {
-                    showImagePicker = true
-                }
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.primaryContainer)
-
-                Divider()
-
-                NavigationLink {
-                    ProgressViewScreen()
-                } label: {
-                    row(icon: "chart.bar.fill", title: "Progressboard")
-                }
-
-                Button {
-                    showLogoutConfirm = true
-                } label: {
-                    row(icon: "arrow.backward.circle.fill", title: "Logout")
-                }
-                .alert("Logout?", isPresented: $showLogoutConfirm) {
-                    Button("Logout", role: .destructive) {
-                        Task {
-                            await profileService.logout()
-                            dismiss()
-                        }
-                    }
-                    Button("Cancel", role: .cancel) {}
-                } message: {
-                    Text("Are you sure you want to logout?")
-                }
-
-                Button(role: .destructive) {
-                    deleteText = ""
-                    showDeleteConfirm = true
-                } label: {
-                    row(icon: "trash.fill", title: "Delete Account", isDestructive: true)
-                }
-                .alert("Delete Account", isPresented: $showDeleteConfirm) {
-                    TextField("Type DELETE to confirm", text: $deleteText)
-
-                    Button("Delete", role: .destructive) {
-                        guard deleteText == "DELETE" else { return }
-                        Task {
-                            await profileService.deleteAccount()
-                            dismiss()
-                        }
+                        Button("Cancel", role: .cancel) {}
+                    } message: {
+                        Text("Are you sure you want to logout?")
                     }
 
-                    Button("Cancel", role: .cancel) {
+                    Button(role: .destructive) {
                         deleteText = ""
+                        showDeleteConfirm = true
+                    } label: {
+                        row(icon: "trash.fill", title: "Delete Account", isDestructive: true)
                     }
-                } message: {
-                    Text("This action is permanent and cannot be undone.")
-                }
+                    .alert("Delete Account", isPresented: $showDeleteConfirm) {
+                        TextField("Type DELETE to confirm", text: $deleteText)
 
-                Spacer()
-            }
-            .padding()
-            .background(Color.background.ignoresSafeArea())
-            .sheet(isPresented: $showImagePicker) {
-                ImagePicker(image: $selectedImage)
-            }
-            .onChange(of: selectedImage) { newImage in
-                guard let image = newImage else { return }
-                Task {
-                    await profileService.uploadAvatar(image)
+                        Button("Delete", role: .destructive) {
+                            guard deleteText == "DELETE" else { return }
+                            Task {
+                                await profileService.deleteAccount()
+                                dismiss()
+                            }
+                        }
+
+                        Button("Cancel", role: .cancel) {
+                            deleteText = ""
+                        }
+                    } message: {
+                        Text("This action is permanent and cannot be undone.")
+                    }
+
+                    Spacer()
                 }
+                .padding()
+                .background(Color.background.ignoresSafeArea())
+                .sheet(isPresented: $showImagePicker) {
+                    ImagePicker(image: $selectedImage)
+                }
+                .onChange(of: selectedImage) { newImage in
+                    guard let image = newImage else { return }
+                    Task {
+                        await profileService.uploadAvatar(image)
+                    }
+                }
+            }
+            .navigationViewStyle(StackNavigationViewStyle())
+
+            if showFullScreenImage {
+                FullScreenImageView(
+                    imageName: nil,
+                    imageURL: profileService.profileImageURL != nil ? URL(string: profileService.profileImageURL!) : nil,
+                    animation: animation
+                ) {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                        showFullScreenImage = false
+                    }
+                }
+                .zIndex(10)
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
 
     private func row(icon: String, title: String, isDestructive: Bool = false) -> some View {

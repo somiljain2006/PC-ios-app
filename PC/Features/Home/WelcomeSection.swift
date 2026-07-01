@@ -38,7 +38,9 @@ struct WelcomeSection: View {
                         withAnimation(.easeInOut) { showProfileSheet = true }
                     } label: {
                         Group {
-                            if let urlString = profileService.profileImageURL, let url = URL(string: urlString) {
+                            if let cachedImage = profileService.cachedProfileImage {
+                                Image(uiImage: cachedImage).resizable().scaledToFill()
+                            } else if let urlString = profileService.profileImageURL, let url = URL(string: urlString) {
                                 AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { ProgressView() }
                             } else {
                                 Image(systemName: "person.fill").resizable().scaledToFit().padding(8).foregroundColor(.white).frame(width: 36, height: 36).background(Color.primaryContainer)
